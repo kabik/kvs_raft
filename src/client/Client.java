@@ -29,8 +29,8 @@ public class Client {
 	private int mode;
 	private int max_entry;
 	private int raft_port;
-	private String raft_address, chris_prefix = "172.16.10.";
-	private int chris_no = 21;
+	private String raft_address, server_prefix = "172.16.10.";
+	private int server_no = 21;
 	private ArrayList<String> inputList;
 	private boolean waitCommit;
 
@@ -103,11 +103,11 @@ public class Client {
 			try {
 				closeConnection();
 
-				int ones_place = chris_no % 10;
+				int ones_place = server_no % 10;
 				ones_place = (ones_place + 1) % 5 + 1;
 
-				chris_no = 20 + ones_place;
-				raft_address = chris_prefix + (chris_no - 8);
+				server_no = 20 + ones_place;
+				raft_address = server_prefix + (server_no - 8);
 
 				openConnection();
 

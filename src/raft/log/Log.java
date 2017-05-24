@@ -13,7 +13,7 @@ import java.util.Collections;
 public class Log {
 	public static final int GROUP_COMMIT_SIZE = 1;
 
-	String filename = "/tmp/kvs_on_raft_kajiwara/log_";
+	String filename = "/tmp/kvs_raft/log_";
 	private FileOutputStream fos;
 
 	private File logfile;
