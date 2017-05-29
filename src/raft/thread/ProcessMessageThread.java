@@ -31,17 +31,13 @@ public class ProcessMessageThread extends AbstractThread {
 	public void run() {
 		String ipAddress = socket.getRemoteSocketAddress().toString().split(":")[0].substring(1);
 
-		Server server = raft.getRaftNodeMap().get(ipAddress);
+		Server server = raft.getRaftNodesMap().get(ipAddress);
 		if (server == null || (server != null && server.isConnected())) {
 			String key = ipAddress + ':' + socket.getPort();
-			//ClientNode cNode = raft.getClientNodeMap().get(key);
-			//ClientNode cNode = raft.getClient(key);
 			ClientNode cNode = raft.getClientNodesMap().get(key);
 			if (cNode == null) {
 				cNode = new ClientNode(raft, ipAddress);
 				cNode.setRecievePort(socket.getPort());
-				//raft.getClientNodeMap().put(key, cNode);
-				//raft.add(key, cNode);
 				raft.getClientNodesMap().add(key, cNode);
 			}
 			server = cNode;
@@ -80,7 +76,6 @@ public class ProcessMessageThread extends AbstractThread {
 					if (raft.getState().isCandidate() && senderTerm == raft.getCurrentTerm()) {
 						raft.stopLeaderElect();
 						raft.setState(new FollowerState());
-						//raft.vote(sender);
 						raft.vote((RaftNode)server);
 						raft.term(false);
 						continue;
@@ -106,10 +101,8 @@ public class ProcessMessageThread extends AbstractThread {
 						}
 					} else {
 						// accept
-						//System.out.println("accept AE");
 						String entriesStrs[] = newEntriesStr.split(",");
 						int num_of_entries = (entriesStrs[0].isEmpty()) ? 0 : entriesStrs.length;
-						//int newEntryIndex = prevLogIndex;
 
 						Entry entries[] = new Entry[num_of_entries];
 						for (int i = 0; i < num_of_entries; i++) {
@@ -121,13 +114,11 @@ public class ProcessMessageThread extends AbstractThread {
 						if (num_of_entries > 0) {
 							raft.comebackCheckThread();
 						}
-						//System.out.println("send accept ae");
 						try {
 							raft.send(server, ACCEPT_AE_STR + " " + raft.getCurrentTerm() + " " + writtenIndex);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						//System.out.println("accept AE RPC");
 					}
 
 					// commitIndex
@@ -153,10 +144,6 @@ public class ProcessMessageThread extends AbstractThread {
 					String asArr[] = contents.split(" ");
 					int lastLogIndex = Integer.parseInt(asArr[0]);
 					int lastLogTerm = Integer.parseInt(asArr[1]);
-					/*if (senderTerm >= raft.getCurrentTerm() 
-							&& (!raft.votedForSomeone() || raft.getVotedFor() == sender)
-							&& ((lastLogTerm > raft.getLog().lastLogTerm() 
-									|| (lastLogTerm == raft.getLog().lastLogTerm()	&& lastLogIndex >= raft.getLog().lastIndex() ) ))){*/
 					if (senderTerm > raft.getCurrentTerm() ||
 							(senderTerm == raft.getCurrentTerm()
 							&& !raft.getState().isLeader()
@@ -164,7 +151,6 @@ public class ProcessMessageThread extends AbstractThread {
 							&& (!raft.votedForSomeone() || raft.getVotedFor() == sender)
 							&& ((lastLogTerm > raft.getLog().lastLogTerm() 
 									|| (lastLogTerm == raft.getLog().lastLogTerm()	&& lastLogIndex >= raft.getLog().lastIndex() ) )))){
-						//System.out.println("vote");
 						raft.resetTime();
 						raft.vote(sender);
 						raft.setVotedForTerm(senderTerm);
@@ -173,9 +159,7 @@ public class ProcessMessageThread extends AbstractThread {
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-					} else {
-						//System.out.println("not vote");
-					}
+					}// else {} // not vote
 				} else if (order.equals(ACCEPT_RVRPC_STR)) {
 					RaftNode sender = (RaftNode)server;
 					raft.beVoted(sender);

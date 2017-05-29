@@ -17,7 +17,7 @@ public class LeaderElectThread extends AbstractThread {
 		raft.resetVote();
 		raft.vote(raft.getMe());
 		raft.beVoted(raft.getMe());
-		for (RaftNode node : raft.getRaftNodeMap().values()) {
+		for (RaftNode node : raft.getRaftNodesMap().getMap().values()) {
 			node.setRVRPCsent(false);
 			node.initSentIndex();
 		}
@@ -35,7 +35,7 @@ public class LeaderElectThread extends AbstractThread {
 				}
 				init();
 			}
-			for (RaftNode rNode: raft.getRaftNodeMap().values()) {
+			for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
 				if (!rNode.hasSentRVRPC() && !rNode.isMe()) {
 					// command, candidate's term, candidate's IP, lastLogIndex, lastLogTerm
 					System.out.println("send RV RPC to " + rNode);

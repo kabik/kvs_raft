@@ -16,6 +16,7 @@ import kvs.KVS;
 import raft.server.ClientNode;
 import raft.server.ClientNodesMap;
 import raft.server.RaftNode;
+import raft.server.RaftNodesMap;
 import raft.server.Server;
 import raft.state.*;
 import raft.thread.*;
@@ -27,12 +28,13 @@ public class Raft {
 	public static final int BACKLOG_SIZE = 10000;
 	int maxNum;			// max number of servers
 
-	private TreeMap<String, RaftNode> raftNodeMap = new TreeMap<String, RaftNode>();
+	//private TreeMap<String, RaftNode> raftNodeMap = new TreeMap<String, RaftNode>();
+	private RaftNodesMap raftNodesMap;
 	private ClientNodesMap clientNodesMap;
 	private State state;
 	KVS kvs;
 	private int currentTerm, timeout, time, vote, votedForTerm, commitIndex, lastApplied;
-	private RaftNode votedFor, me, leader;
+	private RaftNode votedFor, me;
 	private Log log;
 	private List<String> messageQueue = Collections.synchronizedList(new LinkedList<String>());
 
@@ -49,6 +51,7 @@ public class Raft {
 		this.kvs = kvs;
 		this.configFile = new File(configFileName);
 		this.log = new Log(logFileSufix);
+		this.raftNodesMap = new RaftNodesMap();
 		this.clientNodesMap = new ClientNodesMap();
 	}
 
@@ -113,10 +116,9 @@ public class Raft {
 	public synchronized RaftNode getVotedFor() { return votedFor; }
 	public synchronized void resetVote() {
 		getMe().setVotedForMe(false);
-		for (RaftNode node : raftNodeMap.values()) {
+		for (RaftNode node : raftNodesMap.getMap().values()) {
 			node.setVotedForMe(false);
 		}
-		leader = null;
 		votedFor = null;
 		vote = 0;
 	}
@@ -161,14 +163,14 @@ public class Raft {
 
 	// nextIndex
 	public void resetNextIndex() {
-		for (RaftNode node: raftNodeMap.values()) {
+		for (RaftNode node: raftNodesMap.getMap().values()) {
 			node.setNextIndex(log.size());
 		}
 	}
 
 	// matchIndex
 	public void resetMatchIndex() {
-		for (RaftNode node: raftNodeMap.values()) {
+		for (RaftNode node: raftNodesMap.getMap().values()) {
 			node.setMatchIndex(0);
 		}
 	}
@@ -208,10 +210,10 @@ public class Raft {
 		}
 	}
 
-	// serverMap
-	public synchronized TreeMap<String, RaftNode> getRaftNodeMap() { return raftNodeMap; }
-	public synchronized boolean leaderCheckByIP(String key) { return raftNodeMap.get(key) == leader; }
-
+	// raftMap
+	public RaftNodesMap getRaftNodesMap() { return raftNodesMap; }
+	//public synchronized TreeMap<String, RaftNode> getRaftNodeMap() { return raftNodeMap; }
+	
 	// clientMap
 	public ClientNodesMap getClientNodesMap() { return clientNodesMap; }
 
@@ -235,7 +237,7 @@ public class Raft {
 				if (rNode.isMe()) {
 					me = rNode;
 				} else {
-					raftNodeMap.put(rNode.getIPAddress(), rNode);
+					raftNodesMap.add(rNode.getIPAddress(), rNode);
 				}
 			}
 			br.close();
@@ -253,7 +255,6 @@ public class Raft {
 		currentTerm = 0;
 		votedForTerm = -1;
 		votedFor = null;
-		leader = null;
 		commitIndex = -1;
 		lastApplied = -1;
 
@@ -271,7 +272,7 @@ public class Raft {
 	public void showServersInfo() {
 		System.out.println(maxNum + " Servers infomation");
 		System.out.println("this:"+this);
-		for (Server server: raftNodeMap.values()) {
+		for (Server server: raftNodesMap.getMap().values()) {
 			System.out.println("  " + server);
 		}
 	}

@@ -29,7 +29,7 @@ public class CheckThread extends AbstractThread {
 							n > raft.getCommitIndex() && raft.getLog().get(n).getTerm() == raft.getCurrentTerm();
 							n--) {
 						int count = 1; // own
-						for (RaftNode rNode : raft.getRaftNodeMap().values()) {
+						for (RaftNode rNode : raft.getRaftNodesMap().getMap().values()) {
 							//if (rNode.getMatchIndex() >= n) {
 							if (rNode.getWrittenIndex() >= n) {
 								count++;

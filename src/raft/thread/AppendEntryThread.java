@@ -7,7 +7,6 @@ import raft.server.*;
 
 public class AppendEntryThread extends AbstractThread {
 	// heartbeat
-	//public static final int APPENDENTRY_INTERVAL = 1;
 	public static final int HEARTBEAT_INTERVAL = 50;
 	public static final int MAX_ENTRY = 1;	// The number of entries in one RPC
 
@@ -23,7 +22,8 @@ public class AppendEntryThread extends AbstractThread {
 		int prevLogIndex = rNode.getNextIndex() - 1;
 		int prevLogTerm = (prevLogIndex < 0) ? -1 : raft.getLog().get(prevLogIndex).getTerm();
 
-		/* format
+		/* 
+		 * Format
 		 * <command> <leader's term> <prevLogIndex> <prevLogTerm> <leaderCommit> <log entry,log entry...>
 		 */
 		StringBuilder basicMessageSB = new StringBuilder();
@@ -45,7 +45,6 @@ public class AppendEntryThread extends AbstractThread {
 			entrySB.append(raft.getLog().get(index));
 		}
 
-		//System.out.println("send Append Entry RPC to " + rNode.getHostname() + " " + entrySB.toString());
 		/*if (entrySB.length() > 0)
 			System.out.println(entrySB);*/ //
 		String message = basicMessageSB.append(entrySB).toString();
@@ -58,9 +57,6 @@ public class AppendEntryThread extends AbstractThread {
 		long end = System.currentTimeMillis();
 		if (end - start > 10)
 			System.out.println("AERPCs " + (end - start) + " ms "+ rNode.getIPAddress());
-		//long end = System.nanoTime();
-		//long microSec = TimeUnit.MICROSECONDS.convert( System.nanoTime() - start, TimeUnit.NANOSECONDS );
-		//System.out.println( microSec + " microsec passed" );
 	}
 
 	@Override
@@ -80,7 +76,7 @@ public class AppendEntryThread extends AbstractThread {
 			if ((end - start) >= HEARTBEAT_INTERVAL) {
 				boo = true;
 			} else {
-				for (RaftNode rNode: raft.getRaftNodeMap().values()) {
+				for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
 					if (rNode.getNextIndex() < size) {
 						boo = true;
 						break;
@@ -89,7 +85,7 @@ public class AppendEntryThread extends AbstractThread {
 			}
 
 			if (boo) {
-				for (RaftNode rNode: raft.getRaftNodeMap().values()) {
+				for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
 					try {
 						appendEntry(rNode);
 					} catch (IOException e) {
