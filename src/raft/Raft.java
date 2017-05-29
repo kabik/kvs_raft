@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +14,7 @@ import java.util.TreeMap;
 
 import kvs.KVS;
 import raft.server.ClientNode;
+import raft.server.ClientNodesMap;
 import raft.server.RaftNode;
 import raft.server.Server;
 import raft.state.*;
@@ -22,14 +22,13 @@ import raft.thread.*;
 import raft.log.*;
 
 public class Raft {
-	static int TIMEOUT_MIN = 2000, TIMEOUT_WIDTH = 1000;
+	static int TIMEOUT_MIN   = 2000;
+	static int TIMEOUT_WIDTH = 1000;
 	public static final int BACKLOG_SIZE = 10000;
 	int maxNum;			// max number of servers
 
-	//private Map<String, RaftNode> raftNodeMap = new TreeMap<String, RaftNode>();
-	//private Map<String, ClientNode> clientNodeMap = new TreeMap<String, ClientNode>();
-	private Map<String, RaftNode> raftNodeMap = Collections.synchronizedMap(new HashMap());
-	private Map<String, ClientNode> clientNodeMap = Collections.synchronizedMap(new HashMap());
+	private TreeMap<String, RaftNode> raftNodeMap = new TreeMap<String, RaftNode>();
+	private ClientNodesMap clientNodesMap;
 	private State state;
 	KVS kvs;
 	private int currentTerm, timeout, time, vote, votedForTerm, commitIndex, lastApplied;
@@ -50,6 +49,7 @@ public class Raft {
 		this.kvs = kvs;
 		this.configFile = new File(configFileName);
 		this.log = new Log(logFileSufix);
+		this.clientNodesMap = new ClientNodesMap();
 	}
 
 	// KVS
@@ -64,7 +64,6 @@ public class Raft {
 
 	// apply log to KVS
 	public void apply() {
-		//List<Entry> cloneList = log.getEntryListClone();
 		while (getCommitIndex() > getLastApplied() && getLastApplied()+1 < log.size()) {
 
 			String s[] = log.get(getLastApplied()+1).getCommand().split(" ");
@@ -76,18 +75,13 @@ public class Raft {
 			incrementLastApplied();
 		}
 
-		//System.out.println("apply " + getLastApplied() + " " + getLog().lastIndex());
-		//if (getState().isLeader() && getLastApplied() == getLog().lastIndex()) {
 		if (getState().isLeader()) {
 			try {
-				for (ClientNode cn : getClientNodeMap().values()) {
+				TreeMap<String, ClientNode> cloneMap = clientNodesMap.getCloneOfMap();
+				for (ClientNode cn : cloneMap.values()) {
 					int waitLogIndex = cn.getWaitLogIndex();
 					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {
 						send(cn, "commit");
-						System.out.println(cn);
-						/*if (log.getFilename().equals("/tmp/kvs_on_raft_kajiwara/log_2")) { 
-							System.out.println("send commit"); 
-						}*/
 					}
 				}
 			} catch (IOException e1) {
@@ -215,11 +209,11 @@ public class Raft {
 	}
 
 	// serverMap
-	public synchronized Map<String, RaftNode> getRaftNodeMap() { return raftNodeMap; }
+	public synchronized TreeMap<String, RaftNode> getRaftNodeMap() { return raftNodeMap; }
 	public synchronized boolean leaderCheckByIP(String key) { return raftNodeMap.get(key) == leader; }
 
 	// clientMap
-	public synchronized Map<String, ClientNode> getClientNodeMap() { return clientNodeMap; }
+	public ClientNodesMap getClientNodesMap() { return clientNodesMap; }
 
 	// initialization
 	public void init() {
@@ -244,7 +238,6 @@ public class Raft {
 					raftNodeMap.put(rNode.getIPAddress(), rNode);
 				}
 			}
-			//showServersInfo();
 			br.close();
 		} catch(FileNotFoundException e) {
 			e.printStackTrace();
@@ -254,7 +247,6 @@ public class Raft {
 			e.printStackTrace();
 		}
 
-		//log = new Log("");
 		state = new FollowerState();
 		timeout = (int)( Math.random() * TIMEOUT_WIDTH + TIMEOUT_MIN ) - TIMEOUT_WIDTH * me.getPriority();
 		time = 0;

@@ -19,7 +19,6 @@ public class ProcessMessageThread extends AbstractThread {
 	public static final String REQUEST_VOTE_STR = "requestVote";
 	public static final String ACCEPT_RVRPC_STR = "acceptRVRPC";
 	public static final String CLIENT_INPUT_STR = "clientInput";
-	//public static final String RECEIVE_STR = "receiveMessage";
 
 	private Socket socket;
 
@@ -31,17 +30,19 @@ public class ProcessMessageThread extends AbstractThread {
 	@Override
 	public void run() {
 		String ipAddress = socket.getRemoteSocketAddress().toString().split(":")[0].substring(1);
-		//System.out.println("ip : " + ipAddress);
 
 		Server server = raft.getRaftNodeMap().get(ipAddress);
 		if (server == null || (server != null && server.isConnected())) {
 			String key = ipAddress + ':' + socket.getPort();
-			//System.out.println(key);
-			ClientNode cNode = raft.getClientNodeMap().get(key);
+			//ClientNode cNode = raft.getClientNodeMap().get(key);
+			//ClientNode cNode = raft.getClient(key);
+			ClientNode cNode = raft.getClientNodesMap().get(key);
 			if (cNode == null) {
 				cNode = new ClientNode(raft, ipAddress);
 				cNode.setRecievePort(socket.getPort());
-				raft.getClientNodeMap().put(key, cNode);
+				//raft.getClientNodeMap().put(key, cNode);
+				//raft.add(key, cNode);
+				raft.getClientNodesMap().add(key, cNode);
 			}
 			server = cNode;
 		}
@@ -50,17 +51,10 @@ public class ProcessMessageThread extends AbstractThread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		//System.out.println("server is " + server);
 
 		String str = "";
 		try {
 			while(!_halt && !(str = server.receive()).isEmpty()) {
-				//if (str.equals(RECEIVE_STR)) { continue; }
-				//raft.send(server, RECEIVE_STR);
-
-				//System.out.println(server);
-				//System.out.println(str);
-
 				String sArr[] = str.split(" ", 3);
 
 				String order = sArr[0];

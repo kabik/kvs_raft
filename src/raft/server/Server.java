@@ -24,7 +24,6 @@ public abstract class Server {
 
 	public Server(Raft raft, String address, char nodeType) {
 		this.raft = raft;
-		//this.sendPort = this.receivePort = -1;
 		this.nodeType = nodeType;
 		try {
 			this.ip = InetAddress.getByName(address);
@@ -56,8 +55,6 @@ public abstract class Server {
 	public String receive() throws IOException {
 		return in.readLine();
 	}
-	//public void markBR() throws IOException { in.mark(8196); }
-	//public void resetBR() throws IOException { in.reset(); }
 
 	synchronized public void openInput() throws IOException {
 		//System.out.println("open input to " + getHostname());

@@ -46,7 +46,8 @@ public class AppendEntryThread extends AbstractThread {
 		}
 
 		//System.out.println("send Append Entry RPC to " + rNode.getHostname() + " " + entrySB.toString());
-		if (entrySB.length() > 0) { System.out.println(entrySB); } //
+		/*if (entrySB.length() > 0)
+			System.out.println(entrySB);*/ //
 		String message = basicMessageSB.append(entrySB).toString();
 
 		long start = System.currentTimeMillis();
