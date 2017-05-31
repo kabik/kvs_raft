@@ -11,6 +11,8 @@ import raft.Raft;
 import raft.thread.ProcessMessageThread;
 
 public abstract class Server {
+	public static final int SOCKET_TIMEOUT = 0;
+	
 	private Raft raft;
 	
 	private InetAddress ip;
@@ -34,7 +36,7 @@ public abstract class Server {
 
 	@Override
 	public String toString() {
-		return getHostname() + "::" + receivePort; // + "," + sendPort;
+		return getHostname() + "::" + receivePort;
 	}
 
 	public void send(String str) throws IOException {
@@ -47,7 +49,6 @@ public abstract class Server {
 				e.printStackTrace();
 			}
 		}
-		//System.out.println("send message with " + socket);
 		synchronized (out) {
 			out.println(str);
 		}
@@ -102,6 +103,7 @@ public abstract class Server {
 			closeOutput();
 			closeSocket();
 			this.socket = socket;
+			socket.setSoTimeout(SOCKET_TIMEOUT);
 			openInput();
 			openOutput();
 		}
@@ -112,18 +114,16 @@ public abstract class Server {
 			closeOutput();
 			closeSocket();
 			socket = new Socket(getHostname(), getReceivePort());
+			socket.setSoTimeout(SOCKET_TIMEOUT);
 			openInput();
 			openOutput();
 		}
 	}
 	
-	//public int socketReceivePort() { return socket.getPort(); }
 	public boolean isConnected() { return socket != null && socket.isConnected(); }
 
 	public void setRecievePort(int receivePort) { this.receivePort = receivePort; }
-	//public void setSendPort(int sendPort) { this.sendPort = sendPort; }
 	public int getReceivePort() { return receivePort; }
-	//public int getSendPort() { return sendPort; }
 
 	public char getNodeType() { return nodeType; }
 	public String getHostname() { return ip.getHostName(); }

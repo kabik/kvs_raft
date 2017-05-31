@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
@@ -28,7 +27,6 @@ public class Raft {
 	public static final int BACKLOG_SIZE = 10000;
 	int maxNum;			// max number of servers
 
-	//private TreeMap<String, RaftNode> raftNodeMap = new TreeMap<String, RaftNode>();
 	private RaftNodesMap raftNodesMap;
 	private ClientNodesMap clientNodesMap;
 	private State state;
@@ -40,7 +38,7 @@ public class Raft {
 
 	private File configFile;
 
-	Map<Integer, ProcessMessageThread> pmThreads;
+	//TreeMap<Integer, ProcessMessageThread> pmThreads;
 	ReceiveThread rThread;
 	AppendEntryThread aeThread;
 	TimeCountThread tcThread;
@@ -81,16 +79,19 @@ public class Raft {
 		if (getState().isLeader()) {
 			try {
 				TreeMap<String, ClientNode> cloneMap = clientNodesMap.getCloneOfMap();
-				for (ClientNode cn : cloneMap.values()) {
+				for (String key : cloneMap.keySet()) {
+					ClientNode cn = clientNodesMap.get(key);
 					int waitLogIndex = cn.getWaitLogIndex();
 					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {
 						send(cn, "commit");
+						cn.setWaitLogIndex(-1);
 					}
 				}
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 		}
+		System.out.println(kvs.size() + " "+ log.size()); //////
 	}
 
 	// max number of servers
@@ -116,8 +117,10 @@ public class Raft {
 	public synchronized RaftNode getVotedFor() { return votedFor; }
 	public synchronized void resetVote() {
 		getMe().setVotedForMe(false);
-		for (RaftNode node : raftNodesMap.getMap().values()) {
-			node.setVotedForMe(false);
+		//for (RaftNode rNode : raftNodesMap.getMap().values()) {
+		for (String key: getRaftNodesMap().getKeySet()) {
+			RaftNode rNode = getRaftNodesMap().get(key);
+			rNode.setVotedForMe(false);
 		}
 		votedFor = null;
 		vote = 0;
@@ -163,27 +166,31 @@ public class Raft {
 
 	// nextIndex
 	public void resetNextIndex() {
-		for (RaftNode node: raftNodesMap.getMap().values()) {
-			node.setNextIndex(log.size());
+		//for (RaftNode rNode: raftNodesMap.getMap().values()) {
+		for (String key: getRaftNodesMap().getKeySet()) {
+			RaftNode rNode = getRaftNodesMap().get(key);
+			rNode.setNextIndex(log.size());
 		}
 	}
 
 	// matchIndex
 	public void resetMatchIndex() {
-		for (RaftNode node: raftNodesMap.getMap().values()) {
-			node.setMatchIndex(0);
+		//for (RaftNode rNode: raftNodesMap.getMap().values()) {
+		for (String key: getRaftNodesMap().getKeySet()) {
+			RaftNode rNode = getRaftNodesMap().get(key);
+			rNode.setMatchIndex(0);
 		}
 	}
 
 	// ProcessMessage
-	public void comebackProcessMessage() {
+	/*public void comebackProcessMessage() {
 		for (ProcessMessageThread pmThread : pmThreads.values()) {
 			synchronized (pmThread) {
 				pmThread.standFlag();
 				pmThread.notifyAll();
 			}
 		}
-	}
+	}*/
 
 	// leaderElection
 	public void stopLeaderElect() { leThread.sitFlag(); }
@@ -212,8 +219,7 @@ public class Raft {
 
 	// raftMap
 	public RaftNodesMap getRaftNodesMap() { return raftNodesMap; }
-	//public synchronized TreeMap<String, RaftNode> getRaftNodeMap() { return raftNodeMap; }
-	
+
 	// clientMap
 	public ClientNodesMap getClientNodesMap() { return clientNodesMap; }
 
@@ -262,20 +268,20 @@ public class Raft {
 
 		// thread
 		rThread = new ReceiveThread(this);
-		pmThreads = new TreeMap<Integer, ProcessMessageThread>();
+		//pmThreads = new TreeMap<Integer, ProcessMessageThread>();//
 		tcThread = new TimeCountThread(this);
 		leThread = new LeaderElectThread(this);
 		aeThread = new AppendEntryThread(this);
 		cThread = new CheckThread(this);
 	}
 
-	public void showServersInfo() {
+	/*public void showServersInfo() {
 		System.out.println(maxNum + " Servers infomation");
 		System.out.println("this:"+this);
 		for (Server server: raftNodesMap.getMap().values()) {
 			System.out.println("  " + server);
 		}
-	}
+	}*/
 
 	@Override
 	public String toString() {
@@ -315,6 +321,7 @@ public class Raft {
 
 		if (state.isLeader()) {
 			comebackAppendEntry();
+			//comebackTimeCount();
 			//comebackClientInput();
 		} else if (state.isCandidate()) {
 			comebackLeaderElect();

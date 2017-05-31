@@ -51,6 +51,7 @@ public class ProcessMessageThread extends AbstractThread {
 		String str = "";
 		try {
 			while(!_halt && !(str = server.receive()).isEmpty()) {
+				//System.out.println(str); ///
 				String sArr[] = str.split(" ", 3);
 
 				String order = sArr[0];
@@ -65,13 +66,12 @@ public class ProcessMessageThread extends AbstractThread {
 				}
 
 				if (order.equals(APPEND_ENTRY_STR)) {
-					//System.out.println(str);
 					String asArr[] = contents.split(" ", 4);
 					int prevLogIndex = Integer.parseInt(asArr[0]);
 					int prevLogTerm = Integer.parseInt(asArr[1]);
 					int leaderCommit = Integer.parseInt(asArr[2]);
 					String newEntriesStr = (asArr.length < 4) ? "" : asArr[3];
-
+					
 					// heartbeat
 					if (raft.getState().isCandidate() && senderTerm == raft.getCurrentTerm()) {
 						raft.stopLeaderElect();
@@ -82,6 +82,8 @@ public class ProcessMessageThread extends AbstractThread {
 					} else {
 						raft.resetTime();
 					}
+					
+					//if (!newEntriesStr.isEmpty()) { System.out.println(newEntriesStr); }//
 
 					if (raft.getVotedFor() != null && server != raft.getVotedFor() && senderTerm <= raft.getCurrentTerm()) {
 						System.out.println("illegal leader sent me appendEntry PRC : "
@@ -112,7 +114,7 @@ public class ProcessMessageThread extends AbstractThread {
 						}
 						int writtenIndex = raft.getLog().add(prevLogIndex + 1, entries);
 						if (num_of_entries > 0) {
-							raft.comebackCheckThread();
+							raft.comebackCheckThread(); // iru?
 						}
 						try {
 							raft.send(server, ACCEPT_AE_STR + " " + raft.getCurrentTerm() + " " + writtenIndex);
@@ -135,6 +137,7 @@ public class ProcessMessageThread extends AbstractThread {
 						raft.comebackCheckThread();
 					}
 					sender.setWrittenIndex(Integer.parseInt(contents));
+					//System.out.println(raft.getRaftNodesMap()); ////
 				} else if (order.equals(REJECT_AE_STR)) { // fail appendEntry RPC
 					RaftNode sender = (RaftNode)server;
 					sender.decrementNextIndex();

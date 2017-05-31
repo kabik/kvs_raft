@@ -17,7 +17,7 @@ public class Log {
 	private FileOutputStream fos;
 
 	private File logfile;
-	private List<Entry> list;
+	private List<Entry> entryList;
 	private int commit_count;
 	private int preWrittenIndex;
 	private int writtenIndex;
@@ -29,14 +29,14 @@ public class Log {
 		preWrittenIndex = -1;
 		writtenIndex = -1;
 
-		list = Collections.synchronizedList(new LinkedList<Entry>());
+		entryList = Collections.synchronizedList(new LinkedList<Entry>());
 		try {
 			fos = new FileOutputStream(logfile, true);
 			BufferedReader br = new BufferedReader(new FileReader(filename));
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] s = line.split(":", 2);
-				list.add(new Entry(Integer.parseInt(s[0]), s[1]));
+				entryList.add(new Entry(Integer.parseInt(s[0]), s[1]));
 			}
 			br.close();
 		} catch (FileNotFoundException e) {
@@ -48,14 +48,14 @@ public class Log {
 
 	// write all line over the file
 	/* shuuseishuusei */
-	private void writeAll() {
+	private synchronized void writeAll() {
 		System.out.println("writeAll"); //
 		boolean success = false;
 		while (!success) {
 			try {
 				fos.close();
 				fos = new FileOutputStream(logfile, false);
-				for (Entry entry : list) {
+				for (Entry entry : entryList) {
 					fos.write((entry.toString()+'\n').getBytes());
 				}
 				sync();
@@ -67,41 +67,19 @@ public class Log {
 	}
 
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (Entry e : list) {
+		for (Entry e : entryList) {
 			sb.append(e).append("\n");
 		}
 		return sb.toString();
 	}
 
-	// add entries to log without checking (for client input) (no write)
-	/*public int add(Entry...entries) {
-		for (Entry entry : entries) {
-			list.add(entry);
-			commit_count++;
-			preWrittenIndex++;
-		}
-		return list.size() - 1;
-	}
-	// add entries to log with checking (for append Entries RPC) (no write)
-	public int add(int startIndex, Entry...entries) {
-		int newEntryIndex = startIndex;
-		for (Entry entry : entries) {
-			if (!match(newEntryIndex, entry.getTerm())) {
-				removeAfter(newEntryIndex);
-			}
-			list.add(entry);
-			commit_count++;
-			preWrittenIndex++;
-		}
-	}*/
 	// add entries to log without checking (for client input)
-	public int add(Entry...entries) {
+	public synchronized int add(Entry...entries) {
 		try {
 			for (Entry entry : entries) {
-				list.add(entry);
-				//fos.write((entry.toString()+'\n').getBytes()); //sync() de wirte shiteru
+				entryList.add(entry);
 				commit_count++;
 				preWrittenIndex++;
 			}
@@ -112,18 +90,17 @@ public class Log {
 			e.printStackTrace();
 		}
 
-		return list.size() - 1;
+		return entryList.size() - 1;
 	}
 	// add entries to log with checking (for append Entries RPC)
-	public int add(int startIndex, Entry...entries) {
+	public synchronized int add(int startIndex, Entry...entries) {
 		try {
 			int newEntryIndex = startIndex;
 			for (Entry entry : entries) {
 				if (!match(newEntryIndex, entry.getTerm())) {
 					removeAfter(newEntryIndex);
 				}
-				list.add(entry);
-				//fos.write((entry.toString()+'\n').getBytes());
+				entryList.add(entry);
 				commit_count++;
 				preWrittenIndex++;
 			}
@@ -137,42 +114,42 @@ public class Log {
 		return writtenIndex;
 	}
 	
-	public Entry remove() {
-		Entry ret = list.remove(lastIndex());
+	public synchronized Entry remove() {
+		Entry ret = entryList.remove(lastIndex());
 		writeAll();
 		return ret;
 	}
 	// remove entries after index
-	public void removeAfter(int index) {
+	public synchronized void removeAfter(int index) {
 		boolean flag = false;
-		while (list.size() > index) {
-			list.remove(lastIndex());
+		while (entryList.size() > index) {
+			entryList.remove(lastIndex());
 			flag = true;
 		}
 		if (flag) { writeAll(); }
-		preWrittenIndex = writtenIndex = list.size() - 1;
+		preWrittenIndex = writtenIndex = entryList.size() - 1;
 	}
 	public void sync() throws IOException {
-		/*
-		List<Entry> entries = list.subList(writtenIndex + 1, list.size());
+		///*
+		List<Entry> entries = entryList.subList(writtenIndex + 1, size());
 		for (Entry entry : entries) {
 			fos.write((entry.toString()+'\n').getBytes());
 		}
 		fos.getFD().sync();
-		*/
+		//*/
 		commit_count = 0;
 		writtenIndex = preWrittenIndex;
 	}
 	public String getFilename() { return this.filename; }
-	public Entry get(int index) { return list.get(index); }
-	public Entry getLastEntry() { return list.get(list.size()-1); }
+	public Entry get(int index) { return entryList.get(index); }
+	public Entry getLastEntry() { return entryList.get(entryList.size()-1); }
 	public boolean match(int index, int term) {
-		return index < 0 || list.size() < index || ( list.size() > index && list.get(index).getTerm() == term );
+		return index < 0 || entryList.size() < index || ( entryList.size() > index && entryList.get(index).getTerm() == term );
 	}
-	public boolean isEmpty() { return list.isEmpty(); }
-	public int size() { return list.size(); }
-	public int lastIndex() { return list.size() - 1; }
-	public int lastLogTerm() { return (list.size() > 0) ? list.get(lastIndex()).getTerm() : -1; }
+	public boolean isEmpty() { return entryList.isEmpty(); }
+	public int size() { return entryList.size(); }
+	public int lastIndex() { return entryList.size() - 1; }
+	public int lastLogTerm() { return (entryList.size() > 0) ? entryList.get(lastIndex()).getTerm() : -1; }
 
 	public int getWrittenIndex() { return writtenIndex; }
 }

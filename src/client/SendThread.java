@@ -1,5 +1,8 @@
 package client;
 
+/*
+ * not used
+ */
 public class SendThread {
 	static final int INTERVAL = 1;
 

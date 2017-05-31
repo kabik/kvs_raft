@@ -17,9 +17,11 @@ public class LeaderElectThread extends AbstractThread {
 		raft.resetVote();
 		raft.vote(raft.getMe());
 		raft.beVoted(raft.getMe());
-		for (RaftNode node : raft.getRaftNodesMap().getMap().values()) {
-			node.setRVRPCsent(false);
-			node.initSentIndex();
+		//for (RaftNode rNode : raft.getRaftNodesMap().getMap().values()) {
+		for (String key: raft.getRaftNodesMap().getKeySet()) {
+			RaftNode rNode = raft.getRaftNodesMap().get(key);
+			rNode.setRVRPCsent(false);
+			rNode.initSentIndex();
 		}
 	}
 
@@ -35,7 +37,9 @@ public class LeaderElectThread extends AbstractThread {
 				}
 				init();
 			}
-			for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
+			//for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
+			for (String key: raft.getRaftNodesMap().getKeySet()) {
+				RaftNode rNode = raft.getRaftNodesMap().get(key);
 				if (!rNode.hasSentRVRPC() && !rNode.isMe()) {
 					// command, candidate's term, candidate's IP, lastLogIndex, lastLogTerm
 					System.out.println("send RV RPC to " + rNode);
@@ -49,8 +53,6 @@ public class LeaderElectThread extends AbstractThread {
 					}
 				}
 			}
-			//System.out.println("the number of votes is " + raft.getVote());
-
 			if (raft.getVote() > raft.getMaxNum() / 2) {
 				System.out.println("victory");
 				raft.setState(new LeaderState());

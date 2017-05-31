@@ -6,6 +6,9 @@ import java.net.SocketException;
 
 import raft.Raft;
 
+/*
+ * This class have informations of other Raft nodes.
+ */
 public class RaftNode extends Server {
 	public static final char NODE_TYPE = 'r';
 	
@@ -25,7 +28,7 @@ public class RaftNode extends Server {
 		super(raft, address, RaftNode.NODE_TYPE);
 
 		this.matchIndex = 0;
-		writtenIndex = -1;
+		this.writtenIndex = -1;
 		this.votedForMe = false;
 		this.rvrpc_sent = false;
 
@@ -34,12 +37,10 @@ public class RaftNode extends Server {
 			java.util.Enumeration<NetworkInterface> enuIfs = NetworkInterface.getNetworkInterfaces();
 			while (enuIfs.hasMoreElements()) {
 				NetworkInterface ni = enuIfs.nextElement();
-				//System.out.println(ni.getName());
 				java.util.Enumeration<InetAddress> enuIfs2 = ni.getInetAddresses();
 				while (enuIfs2.hasMoreElements()) {
 					InetAddress subNi = enuIfs2.nextElement();
 					String subNiStr = subNi.toString().substring(1);
-					//System.out.println("  " + subNiStr);
 					if (subNiStr.equals(address) || subNiStr.equals(getIPAddress())) {
 						this.isme = true;
 					}

@@ -21,7 +21,7 @@ public class CheckThread extends AbstractThread {
 						wait();
 					}
 				}
-				if (raft.getCommitIndex() > raft.getLastApplied()) {
+				if (raft.getCommitIndex() > raft.getLastApplied()) {					
 					raft.apply();
 				}
 				if (raft.getState().isLeader()) {
@@ -29,7 +29,9 @@ public class CheckThread extends AbstractThread {
 							n > raft.getCommitIndex() && raft.getLog().get(n).getTerm() == raft.getCurrentTerm();
 							n--) {
 						int count = 1; // own
-						for (RaftNode rNode : raft.getRaftNodesMap().getMap().values()) {
+						//for (RaftNode rNode : raft.getRaftNodesMap().getMap().values()) {
+						for (String key: raft.getRaftNodesMap().getKeySet()) {
+							RaftNode rNode = raft.getRaftNodesMap().get(key);
 							//if (rNode.getMatchIndex() >= n) {
 							if (rNode.getWrittenIndex() >= n) {
 								count++;

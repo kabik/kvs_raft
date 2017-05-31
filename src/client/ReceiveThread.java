@@ -2,6 +2,9 @@ package client;
 
 import java.io.IOException;
 
+/*
+ * not used
+ */
 public class ReceiveThread {
 	Client client;
 	public boolean _halt = false;

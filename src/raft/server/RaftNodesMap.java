@@ -1,5 +1,6 @@
 package raft.server;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class RaftNodesMap {
@@ -16,10 +17,17 @@ public class RaftNodesMap {
 	public synchronized void remove(String key) {
 		map.remove(key);
 	}
-	public synchronized TreeMap<String, RaftNode> getMap() {
+	/*public synchronized TreeMap<String, RaftNode> getMap() {
 		return map;
-	}
-	/*public synchronized TreeMap<String, RaftNode> getCloneOfMap() {
-	return new TreeMap<String, RaftNode>(map);
 	}*/
+	public synchronized ArrayList<String> getKeySet() {
+		return new ArrayList<String>(map.keySet());
+	}
+	@Override public synchronized String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (RaftNode rNode: map.values()) {
+			sb.append(rNode).append('\n');
+		}
+		return sb.toString();
+	}
 }

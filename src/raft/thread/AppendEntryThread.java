@@ -30,7 +30,7 @@ public class AppendEntryThread extends AbstractThread {
 		basicMessageSB.append(ProcessMessageThread.APPEND_ENTRY_STR).append(' ').append(raft.getCurrentTerm())
 		.append(' ').append(prevLogIndex)
 		.append(' ').append(prevLogTerm).append(' ').append(raft.getCommitIndex()).append(' ');
-		
+
 		if (rNode.isWaitingForAcception()) {
 			raft.send(rNode, basicMessageSB.toString());
 			return;
@@ -50,7 +50,7 @@ public class AppendEntryThread extends AbstractThread {
 		String message = basicMessageSB.append(entrySB).toString();
 
 		long start = System.currentTimeMillis();
-		
+
 		raft.send(rNode, message);
 		rNode.setSentIndex(Math.min(raft.getLog().lastIndex(), index));
 
@@ -76,7 +76,9 @@ public class AppendEntryThread extends AbstractThread {
 			if ((end - start) >= HEARTBEAT_INTERVAL) {
 				boo = true;
 			} else {
-				for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
+				//for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
+				for (String key: raft.getRaftNodesMap().getKeySet()) {
+					RaftNode rNode = raft.getRaftNodesMap().get(key);
 					if (rNode.getNextIndex() < size) {
 						boo = true;
 						break;
@@ -85,7 +87,9 @@ public class AppendEntryThread extends AbstractThread {
 			}
 
 			if (boo) {
-				for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
+				//for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
+				for (String key: raft.getRaftNodesMap().getKeySet()) {
+					RaftNode rNode = raft.getRaftNodesMap().get(key);
 					try {
 						appendEntry(rNode);
 					} catch (IOException e) {

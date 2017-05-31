@@ -9,13 +9,15 @@ import java.net.UnknownHostException;
 import java.net.Socket;
 import java.util.ArrayList;
 
+/*
+ * This class have informations of client nodes.
+ */
 public class Client {
 	static final int BULK_INPUT_MODE = 1;
 	static final int ONE_BY_ONE_INPUT_MODE = 2;
 
-	static final int TIMEOUT = 10000;
+	static final int SOCKET_TIMEOUT = 0;	
 
-	//static final int RAFT_RECEIVE_PORT = 51111;
 	static final int BACKLOG_SIZE = 1000;
 	static final int BULK_MAX_ENTRY = 100;
 
@@ -50,7 +52,7 @@ public class Client {
 		try {
 			setInput();
 			openConnection();
-			socket.setSoTimeout(TIMEOUT);
+			socket.setSoTimeout(SOCKET_TIMEOUT);
 
 			//rvThread = new ReceiveThread(this);
 			//rvThread.start();
@@ -82,19 +84,15 @@ public class Client {
 	}
 	public void openConnection() throws UnknownHostException, IOException {
 		socket = new Socket(raft_address, raft_port);
-		//System.out.println("open connection to " + socket.getRemoteSocketAddress());
 		System.out.println("open connection : " + socket);
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
 	public void closeConnection() throws IOException {
-		System.out.println("close connection to " + socket.getRemoteSocketAddress());
-		in.close();
-		System.out.println("in closed");
-		out.close();
-		System.out.println("out closed");
+		//in.close();
+		//out.close();
 		socket.close();
-		System.out.println("socket closed");
+		//System.out.println("close connection to " + socket.getRemoteSocketAddress());
 	}
 
 	public String change_raft_host() {
@@ -131,13 +129,11 @@ public class Client {
 
 		while(true) {
 			try {
-				//System.out.print("read command : ");
 				String line = reader.readLine();
 
 				if (line == null) {	break; }
 				if (!line.isEmpty()) {
-					inputList.add(line); // insert
-					//System.out.println(line);
+					inputList.add(line);
 				}
 			} catch (ConnectException e) {
 				//e.printStackTrace();
@@ -173,7 +169,7 @@ public class Client {
 
 				send(sb.toString());
 				incrementCount();
-				//System.out.println(sb);
+				//System.out.println(sb); //
 			}
 
 			// success
@@ -209,6 +205,7 @@ public class Client {
 				System.out.println(socket.getInetAddress() + ":" + socket.getPort() + " > it takes " + (end - start) + " ms.");
 				setWaitCommit(true);
 				finish = true;
+				closeConnection();
 			}
 		} else if (strArr[0].equals("redirect")) {
 			System.out.println("redirect to " + strArr[1]);
@@ -220,16 +217,14 @@ public class Client {
 			for (int i = 0; i < max_entry; i++) {
 				decrementCount();
 			}
-		}
+		}// else if (strArr[0].equals("keepAlive")) {	System.out.println(strArr[0]); }
 	}
 
 	private void run() throws IOException {
-		while (true) {
-			if (!finish) {
-				sendInput();
-				String str = receive();
-				process(str);
-			}
+		while (!finish) {
+			sendInput();
+			String str = receive();
+			process(str);
 		}
 	}
 
@@ -250,7 +245,7 @@ public class Client {
 				System.out.println("Please select mode: bulk/one");
 				System.exit(1);
 			}
-			
+
 			int forwardingPort = Integer.parseInt(args[1]);
 			Client client = new Client(mode, forwardingPort);
 			try {
