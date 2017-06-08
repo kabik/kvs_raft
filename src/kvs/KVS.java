@@ -6,7 +6,6 @@ import raft.Raft;
 
 public class KVS {
 	TreeMap<String, String> map = new TreeMap<String, String>();
-	//Map<String, String> map = Collections.synchronizedMap(new HashMap());
 	Raft raft;
 	
 	public KVS(String configFileName, String logFileSufix) {
@@ -18,13 +17,6 @@ public class KVS {
 	public int size() {
 		return map.size();
 	}
-		
-	/*public void raft_put(String key, String value) throws IOException {
-		raft.put(key, value);
-	}
-	public void raft_remove(String key) throws IOException {
-		raft.remove(key);
-	}*/
 	
 	public void put(String key, String value) {
 		//System.out.println("put " + key + " " + value);
@@ -38,7 +30,8 @@ public class KVS {
 		return ret;
 	}
 	
-	public void show() {
+	@Override
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("--kvs--\n");
 		for (String key : map.keySet()) {
@@ -49,5 +42,7 @@ public class KVS {
 		}
 		sb.append("-------");
 		System.out.println(sb);
+		
+		return sb.toString();
 	}
 }

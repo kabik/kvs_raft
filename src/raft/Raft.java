@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.TreeMap;
 
 import kvs.KVS;
 import raft.server.ClientNode;
@@ -77,8 +76,7 @@ public class Raft {
 
 		if (getState().isLeader()) {
 			try {
-				TreeMap<String, ClientNode> cloneMap = clientNodesMap.getCloneOfMap();
-				for (String key : cloneMap.keySet()) {
+				for (String key : clientNodesMap.getKeySet()) {
 					ClientNode cn = clientNodesMap.get(key);
 					int waitLogIndex = cn.getWaitIndex();
 					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {

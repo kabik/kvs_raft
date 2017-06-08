@@ -1,5 +1,6 @@
 package raft.server;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class ClientNodesMap {
@@ -16,7 +17,7 @@ public class ClientNodesMap {
 	public synchronized void remove(String key) {
 		map.remove(key);
 	}
-	public synchronized TreeMap<String, ClientNode> getCloneOfMap() {
-		return new TreeMap<String, ClientNode>(map);
+	public synchronized ArrayList<String> getKeySet() {
+		return new ArrayList<String>(map.keySet());
 	}
 }

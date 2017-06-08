@@ -17,9 +17,6 @@ public class RaftNodesMap {
 	public synchronized void remove(String key) {
 		map.remove(key);
 	}
-	/*public synchronized TreeMap<String, RaftNode> getMap() {
-		return map;
-	}*/
 	public synchronized ArrayList<String> getKeySet() {
 		return new ArrayList<String>(map.keySet());
 	}
