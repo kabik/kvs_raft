@@ -181,7 +181,8 @@ public class ProcessMessageThread extends AbstractThread {
 								entries[i] = new Entry(raft.getCurrentTerm(), entriesStr[i]);
 						}
 						int lastIndex = raft.getLog().add(entries);
-						cNode.setWaitLogIndex(lastIndex);
+						cNode.setWaitIndex(lastIndex);
+						//raft.send(cNode, "receive " + lastIndex);
 
 						raft.comebackCheckThread();
 					} else {

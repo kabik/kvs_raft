@@ -25,9 +25,6 @@ public class Client {
 	private BufferedReader in;
 	private PrintWriter out;
 
-	//private ReceiveThread rvThread;
-	//private SendThread sThread;
-
 	private int mode;
 	private int max_entry;
 	private int raft_port;
@@ -38,6 +35,8 @@ public class Client {
 
 	private int commandNum = 0;
 	private int count = 0;
+	
+	//private int waitIndex = -1;
 
 	long start = -1;
 	boolean finish = false;
@@ -89,8 +88,6 @@ public class Client {
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
 	public void closeConnection() throws IOException {
-		//in.close();
-		//out.close();
 		socket.close();
 		//System.out.println("close connection to " + socket.getRemoteSocketAddress());
 	}
@@ -193,10 +190,9 @@ public class Client {
 	public void process(String message) throws IOException {
 		String strArr[] = message.split(" ");
 		if (strArr[0].equals("commit")) {
-			//if (strArr[0].equals("commit") && getWaitCommit()) {
+		//if (strArr[0].equals("commit") && Integer.parseInt(strArr[1]) == waitIndex) {
 			setWaitCommit(false);
-			//incrementCount();
-
+			
 			if (getCount() % 2000 == 0) 
 				System.out.println(socket.getInetAddress() + ":" + socket.getPort() + " > " + getCount() + " input end.");
 			if (start < 0) { start = System.currentTimeMillis(); }
@@ -207,6 +203,9 @@ public class Client {
 				finish = true;
 				closeConnection();
 			}
+		/*} else if (strArr[0].equals("receive")) {
+			waitIndex = Integer.parseInt(strArr[1]);
+		*/
 		} else if (strArr[0].equals("redirect")) {
 			System.out.println("redirect to " + strArr[1]);
 			setRaftAddress(strArr[1]);

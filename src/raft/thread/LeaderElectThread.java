@@ -17,7 +17,6 @@ public class LeaderElectThread extends AbstractThread {
 		raft.resetVote();
 		raft.vote(raft.getMe());
 		raft.beVoted(raft.getMe());
-		//for (RaftNode rNode : raft.getRaftNodesMap().getMap().values()) {
 		for (String key: raft.getRaftNodesMap().getKeySet()) {
 			RaftNode rNode = raft.getRaftNodesMap().get(key);
 			rNode.setRVRPCsent(false);
@@ -37,7 +36,6 @@ public class LeaderElectThread extends AbstractThread {
 				}
 				init();
 			}
-			//for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
 			for (String key: raft.getRaftNodesMap().getKeySet()) {
 				RaftNode rNode = raft.getRaftNodesMap().get(key);
 				if (!rNode.hasSentRVRPC() && !rNode.isMe()) {

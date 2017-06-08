@@ -38,7 +38,6 @@ public class Raft {
 
 	private File configFile;
 
-	//TreeMap<Integer, ProcessMessageThread> pmThreads;
 	ReceiveThread rThread;
 	AppendEntryThread aeThread;
 	TimeCountThread tcThread;
@@ -81,17 +80,30 @@ public class Raft {
 				TreeMap<String, ClientNode> cloneMap = clientNodesMap.getCloneOfMap();
 				for (String key : cloneMap.keySet()) {
 					ClientNode cn = clientNodesMap.get(key);
-					int waitLogIndex = cn.getWaitLogIndex();
+					int waitLogIndex = cn.getWaitIndex();
 					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {
+						//send(cn, "commit " + cn.getWaitIndex());
 						send(cn, "commit");
-						cn.setWaitLogIndex(-1);
+						cn.setWaitIndex(-1);
 					}
-				}
+				}				
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+			
+			//// debug
+			/*if (log.size() > 400000) {
+				TreeMap<String, ClientNode> cloneMap = clientNodesMap.getCloneOfMap();
+				for (String key : cloneMap.keySet()) {
+					ClientNode cn = clientNodesMap.get(key);
+					System.out.println(cn + " : " + cn.lastWaitIndex() + " " + cn.getWaitIndex());
+				}
+				System.exit(0);
+			}*/
+			////
+			
 		}
-		System.out.println(kvs.size() + " "+ log.size()); //////
+		//System.out.println(kvs.size() + " "+ log.size()); //////
 	}
 
 	// max number of servers
@@ -111,13 +123,12 @@ public class Raft {
 		}
 	}
 	public boolean existMessage() { return !messageQueue.isEmpty(); }
-	public int getMessageQueueSize() { return messageQueue.size(); } // for debugging
+	public int getMessageQueueSize() { return messageQueue.size(); } // for debug
 
 	// vote
 	public synchronized RaftNode getVotedFor() { return votedFor; }
 	public synchronized void resetVote() {
 		getMe().setVotedForMe(false);
-		//for (RaftNode rNode : raftNodesMap.getMap().values()) {
 		for (String key: getRaftNodesMap().getKeySet()) {
 			RaftNode rNode = getRaftNodesMap().get(key);
 			rNode.setVotedForMe(false);
@@ -166,7 +177,6 @@ public class Raft {
 
 	// nextIndex
 	public void resetNextIndex() {
-		//for (RaftNode rNode: raftNodesMap.getMap().values()) {
 		for (String key: getRaftNodesMap().getKeySet()) {
 			RaftNode rNode = getRaftNodesMap().get(key);
 			rNode.setNextIndex(log.size());
@@ -175,22 +185,11 @@ public class Raft {
 
 	// matchIndex
 	public void resetMatchIndex() {
-		//for (RaftNode rNode: raftNodesMap.getMap().values()) {
 		for (String key: getRaftNodesMap().getKeySet()) {
 			RaftNode rNode = getRaftNodesMap().get(key);
 			rNode.setMatchIndex(0);
 		}
 	}
-
-	// ProcessMessage
-	/*public void comebackProcessMessage() {
-		for (ProcessMessageThread pmThread : pmThreads.values()) {
-			synchronized (pmThread) {
-				pmThread.standFlag();
-				pmThread.notifyAll();
-			}
-		}
-	}*/
 
 	// leaderElection
 	public void stopLeaderElect() { leThread.sitFlag(); }
@@ -268,20 +267,11 @@ public class Raft {
 
 		// thread
 		rThread = new ReceiveThread(this);
-		//pmThreads = new TreeMap<Integer, ProcessMessageThread>();//
 		tcThread = new TimeCountThread(this);
 		leThread = new LeaderElectThread(this);
 		aeThread = new AppendEntryThread(this);
 		cThread = new CheckThread(this);
 	}
-
-	/*public void showServersInfo() {
-		System.out.println(maxNum + " Servers infomation");
-		System.out.println("this:"+this);
-		for (Server server: raftNodesMap.getMap().values()) {
-			System.out.println("  " + server);
-		}
-	}*/
 
 	@Override
 	public String toString() {
@@ -331,11 +321,10 @@ public class Raft {
 		}
 	}
 
-	public void run() {
+	public void start() {
 		rThread.start();
 		try {
 			Thread.sleep(500);
-			//openSend();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

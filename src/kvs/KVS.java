@@ -12,7 +12,7 @@ public class KVS {
 	public KVS(String configFileName, String logFileSufix) {
 		raft = new Raft(this, configFileName, logFileSufix);
 		raft.init();
-		raft.run();
+		raft.start();
 	}
 	
 	public int size() {

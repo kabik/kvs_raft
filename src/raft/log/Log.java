@@ -147,7 +147,7 @@ public class Log {
 		return index < 0 || entryList.size() < index || ( entryList.size() > index && entryList.get(index).getTerm() == term );
 	}
 	public boolean isEmpty() { return entryList.isEmpty(); }
-	public int size() { return entryList.size(); }
+	public synchronized int size() { return entryList.size(); }
 	public int lastIndex() { return entryList.size() - 1; }
 	public int lastLogTerm() { return (entryList.size() > 0) ? entryList.get(lastIndex()).getTerm() : -1; }
 

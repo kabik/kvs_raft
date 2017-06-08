@@ -76,7 +76,6 @@ public class AppendEntryThread extends AbstractThread {
 			if ((end - start) >= HEARTBEAT_INTERVAL) {
 				boo = true;
 			} else {
-				//for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
 				for (String key: raft.getRaftNodesMap().getKeySet()) {
 					RaftNode rNode = raft.getRaftNodesMap().get(key);
 					if (rNode.getNextIndex() < size) {
@@ -87,7 +86,6 @@ public class AppendEntryThread extends AbstractThread {
 			}
 
 			if (boo) {
-				//for (RaftNode rNode: raft.getRaftNodesMap().getMap().values()) {
 				for (String key: raft.getRaftNodesMap().getKeySet()) {
 					RaftNode rNode = raft.getRaftNodesMap().get(key);
 					try {
