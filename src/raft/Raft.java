@@ -31,7 +31,7 @@ public class Raft {
 	private ClientNodesMap clientNodesMap;
 	private State state;
 	private StateMachine stateMachine;
-	private int currentTerm, timeout, time, vote, votedForTerm, commitIndex, lastApplied;
+	private int currentTerm, timeout, time, vote, commitIndex, lastApplied;
 	private RaftNode votedFor, me;
 	private Log log;
 	private List<String> messageQueue = Collections.synchronizedList(new LinkedList<String>());
@@ -127,23 +127,17 @@ public class Raft {
 		votedFor = null;
 		vote = 0;
 	}
-	public synchronized void vote(RaftNode node) {
-		votedFor = node;
+	public synchronized void vote(RaftNode rNode) {
+		votedFor = rNode;
 	}
-	public synchronized void beVoted(RaftNode node) {
-		if (!node.hasVotedForMe()) {
-			node.setVotedForMe(true);
+	public synchronized void beVoted(RaftNode rNode) {
+		if (!rNode.hasVotedForMe()) {
+			rNode.setVotedForMe(true);
 			vote++;
 		}
 	}
 	public synchronized int getVote() {
 		return vote;
-	}
-	public synchronized int getVotedForTerm() {
-		return (votedForSomeone()) ? votedForTerm : -1;
-	}
-	public synchronized void setVotedForTerm(int t) {
-		this.votedForTerm = t;
 	}
 	public synchronized boolean votedForSomeone() {
 		return votedFor != null;
@@ -284,7 +278,6 @@ public class Raft {
 		timeout = (int)( Math.random() * TIMEOUT_WIDTH + TIMEOUT_MIN ) - TIMEOUT_WIDTH * me.getPriority();
 		time = 0;
 		currentTerm = 0;
-		votedForTerm = -1;
 		votedFor = null;
 		commitIndex = -1;
 		lastApplied = -1;
@@ -304,6 +297,7 @@ public class Raft {
 		return state + " currentTerm:" + currentTerm + " votedFor:" + votedFor + " vote:" + vote;
 	}
 
+	// iranai!
 	public void send(Server server, String str) throws IOException {
 		server.send(str);
 	}
@@ -316,9 +310,9 @@ public class Raft {
 	}
 
 	/**
-	 * @param next if true, term number will be incremented
+	 * @param canGoToNextTerm if true, term number will be incremented
 	 */
-	public void term(boolean next) {
+	public void term(boolean canGoToNextTerm) {
 		try {
 			leThread.sitFlag();
 			aeThread.sitFlag();
@@ -326,7 +320,9 @@ public class Raft {
 			e.printStackTrace();
 		}
 
-		System.out.println("next term:" + getCurrentTerm() + " state:" + state);
+		if (canGoToNextTerm) {
+			incrementCurrentTerm();
+		}
 
 		resetTime();
 		resetVote();
@@ -339,6 +335,8 @@ public class Raft {
 		} else if (state.isFollower()) {
 			comebackTimeCount();
 		}
+		
+		System.out.println("term:" + getCurrentTerm() + " state:" + state);
 	}
 
 	public void start() {

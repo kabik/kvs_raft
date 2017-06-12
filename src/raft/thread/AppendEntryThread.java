@@ -84,6 +84,7 @@ public class AppendEntryThread extends AbstractThread {
 			if (boo) {
 				for (String key: raft.getRaftNodesMap().getKeySet()) {
 					RaftNode rNode = raft.getRaftNodesMap().get(key);
+					// too many try catch
 					try {
 						appendEntry(rNode);
 					} catch (IOException e) {

@@ -51,7 +51,6 @@ public class ProcessMessageThread extends AbstractThread {
 		String str = "";
 		try {
 			while(!_halt && !(str = server.receive()).isEmpty()) {
-				//System.out.println(str); ///
 				String sArr[] = str.split(" ", 3);
 
 				String order = sArr[0];
@@ -71,22 +70,22 @@ public class ProcessMessageThread extends AbstractThread {
 					int prevLogTerm = Integer.parseInt(asArr[1]);
 					int leaderCommit = Integer.parseInt(asArr[2]);
 					String newEntriesStr = (asArr.length < 4) ? "" : asArr[3];
-					
+
 					// heartbeat
 					if (raft.getState().isCandidate() && senderTerm == raft.getCurrentTerm()) {
 						raft.stopLeaderElect();
 						raft.setState(new FollowerState());
-						raft.vote((RaftNode)server);
 						raft.term(false);
+						raft.vote((RaftNode)server);
 						continue;
 					} else {
 						raft.resetTime();
 					}
-					
-					//if (!newEntriesStr.isEmpty()) { System.out.println(newEntriesStr); }//
 
-					if (raft.getVotedFor() != null && server != raft.getVotedFor() && senderTerm <= raft.getCurrentTerm()) {
-						System.out.println("illegal leader sent me appendEntry PRC : "
+					if (raft.getVotedFor() != null
+							&& server != raft.getVotedFor()
+							&& senderTerm <= raft.getCurrentTerm()) {
+						System.out.println("Illegal leader sent me an appendEntry PRC : "
 								+ server.getHostname() + " sender's term is " + senderTerm);
 						System.out.println("I have voted for " + raft.getVotedFor());
 					}
@@ -137,8 +136,8 @@ public class ProcessMessageThread extends AbstractThread {
 						raft.comebackCheckThread();
 					}
 					sender.setWrittenIndex(Integer.parseInt(contents));
-					//System.out.println(raft.getRaftNodesMap()); ////
-				} else if (order.equals(REJECT_AE_STR)) { // fail appendEntry RPC
+				} else if (order.equals(REJECT_AE_STR)) {
+					// fail appendEntry RPC
 					RaftNode sender = (RaftNode)server;
 					sender.decrementNextIndex();
 					sender.initSentIndex();
@@ -156,7 +155,6 @@ public class ProcessMessageThread extends AbstractThread {
 									|| (lastLogTerm == raft.getLog().lastLogTerm()	&& lastLogIndex >= raft.getLog().lastIndex() ) )))){
 						raft.resetTime();
 						raft.vote(sender);
-						raft.setVotedForTerm(senderTerm);
 						try {
 							raft.send(sender, ACCEPT_RVRPC_STR + " " + raft.getCurrentTerm());
 						} catch (IOException e) {
@@ -167,7 +165,6 @@ public class ProcessMessageThread extends AbstractThread {
 					RaftNode sender = (RaftNode)server;
 					raft.beVoted(sender);
 				} else if (order.equals(CLIENT_INPUT_STR)) {
-					//System.out.println(str);//
 					ClientNode cNode = (ClientNode)server;
 
 					if (raft.getState().isLeader()) {
@@ -182,7 +179,6 @@ public class ProcessMessageThread extends AbstractThread {
 						}
 						int lastIndex = raft.getLog().add(entries);
 						cNode.setWaitIndex(lastIndex);
-						//raft.send(cNode, "receive " + lastIndex);
 
 						raft.comebackCheckThread();
 					} else {
@@ -191,10 +187,9 @@ public class ProcessMessageThread extends AbstractThread {
 				} else {
 					System.out.println("illegal command:" + order);
 				}
-				//System.out.println("-----------");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			try {
 				System.out.println("close connection");
 				server.closeConnection();
