@@ -196,12 +196,12 @@ public class ProcessMessageThread extends AbstractThread {
 		} catch (Exception e) {
 			e.printStackTrace();
 			try {
-				System.out.println("close connection with " + server);
+				System.out.println("close connection");
 				server.closeConnection();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 		}
-		System.out.println("end process message ");
+		//System.out.println("end process message");
 	}
 }

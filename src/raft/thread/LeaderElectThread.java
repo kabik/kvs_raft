@@ -29,7 +29,7 @@ public class LeaderElectThread extends AbstractThread {
 		while(!_halt) {
 			while (!raft.getState().isCandidate() || !flag) {
 				try {
-					System.out.println("leader elect thread sleep");
+					//System.out.println("leader elect thread sleep");
 					synchronized (this) { wait(); }
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -40,7 +40,7 @@ public class LeaderElectThread extends AbstractThread {
 				RaftNode rNode = raft.getRaftNodesMap().get(key);
 				if (!rNode.hasSentRVRPC() && !rNode.isMe()) {
 					// command, candidate's term, candidate's IP, lastLogIndex, lastLogTerm
-					System.out.println("send RV RPC to " + rNode);
+					//System.out.println("send RV RPC to " + rNode);
 					try {
 						raft.send(rNode, ProcessMessageThread.REQUEST_VOTE_STR + " "+ raft.getCurrentTerm() +
 								" " + raft.getLog().lastIndex() + " " + raft.getLog().lastLogTerm());
@@ -51,7 +51,7 @@ public class LeaderElectThread extends AbstractThread {
 					}
 				}
 			}
-			if (raft.getVote() > raft.getMaxNum() / 2) {
+			if (raft.getVote() > raft.getServerNum() / 2) {
 				System.out.println("victory");
 				raft.setState(new LeaderState());
 				raft.term(false);

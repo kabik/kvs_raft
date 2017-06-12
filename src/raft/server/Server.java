@@ -16,17 +16,14 @@ public abstract class Server {
 	private Raft raft;
 	
 	private InetAddress ip;
-	private int receivePort;	// port number for receiving (if this server isn't me, this won't used)
-	
+	private int receivePort;
+
 	private Socket socket = null;
 	private BufferedReader  in = null;
 	private PrintWriter out = null;
-	
-	private char nodeType;
 
-	public Server(Raft raft, String address, char nodeType) {
+	public Server(Raft raft, String address) {
 		this.raft = raft;
-		this.nodeType = nodeType;
 		try {
 			this.ip = InetAddress.getByName(address);
 		} catch (Exception e) {
@@ -58,31 +55,25 @@ public abstract class Server {
 	}
 
 	synchronized public void openInput() throws IOException {
-		//System.out.println("open input to " + getHostname());
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 	synchronized public void openOutput() throws IOException {
-		//System.out.println("open output to " + getHostname());
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
 	synchronized public void closeInput() throws IOException {
 		if (in != null) {
-			//System.out.println("close input to " + getHostname());
 			in.close();
 			in = null;
 		}
 	}
 	synchronized public void closeOutput() throws IOException {
 		if (out != null) {
-			//System.out.println("close output to " + getHostname());
 			out.close();
 			out = null;
 		}
 	}
 	synchronized public void closeSocket() throws IOException {
 		if (socket != null) {
-			//System.out.println("close socket to " + getHostname());
-			System.out.println("close socket : " + socket);
 			socket.close();
 			socket = null;
 		}
@@ -120,12 +111,21 @@ public abstract class Server {
 		}
 	}
 	
-	public boolean isConnected() { return socket != null && socket.isConnected(); }
+	public boolean isConnected() {
+		return socket != null && socket.isConnected();
+	}
 
-	public void setRecievePort(int receivePort) { this.receivePort = receivePort; }
-	public int getReceivePort() { return receivePort; }
+	public void setRecievePort(int receivePort) {
+		this.receivePort = receivePort;
+	}
+	public int getReceivePort() {
+		return receivePort;
+	}
 
-	public char getNodeType() { return nodeType; }
-	public String getHostname() { return ip.getHostName(); }
-	public String getIPAddress() { return ip.getHostAddress(); }
+	public String getHostname() {
+		return ip.getHostName();
+	}
+	public String getIPAddress() {
+		return ip.getHostAddress();
+	}
 }

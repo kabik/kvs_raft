@@ -18,7 +18,6 @@ public class ReceiveThread extends AbstractThread {
 			serverSocket = new ServerSocket(raft.getMe().getReceivePort(), Raft.BACKLOG_SIZE);
 			while (true) {
 				Socket socket = serverSocket.accept();
-				System.out.println("new connection : " + socket);
 				new ProcessMessageThread(raft, socket).start();
 			}
 		} catch (IOException e) {

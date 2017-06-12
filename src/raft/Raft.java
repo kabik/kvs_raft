@@ -25,7 +25,7 @@ public class Raft {
 	static int TIMEOUT_MIN   = 2000;
 	static int TIMEOUT_WIDTH = 1000;
 	public static final int BACKLOG_SIZE = 10000;
-	int maxNum;			// max number of servers
+	int serverNum;
 
 	private RaftNodesMap raftNodesMap;
 	private ClientNodesMap clientNodesMap;
@@ -86,14 +86,19 @@ public class Raft {
 		}
 	}
 
-	// max number of servers
-	public int getMaxNum() { return maxNum; }
+	public int getServerNum() {
+		return serverNum;
+	}
 
 	// log
-	public Log getLog() { return log; }
+	public Log getLog() {
+		return log;
+	}
 
 	// message queue
-	public void addMessage(String str) { messageQueue.add(str); } //add last
+	public void addMessage(String str) {
+		messageQueue.add(str);
+	}
 	public String pollMessage() {
 		try {
 			return messageQueue.remove(0);
@@ -102,11 +107,17 @@ public class Raft {
 			return "";
 		}
 	}
-	public boolean existMessage() { return !messageQueue.isEmpty(); }
-	public int getMessageQueueSize() { return messageQueue.size(); } // for debug
+	public boolean existMessage() {
+		return !messageQueue.isEmpty();
+	}
+	public int getMessageQueueSize() { 
+		return messageQueue.size();
+	}
 
 	// vote
-	public synchronized RaftNode getVotedFor() { return votedFor; }
+	public synchronized RaftNode getVotedFor() {
+		return votedFor;
+	}
 	public synchronized void resetVote() {
 		getMe().setVotedForMe(false);
 		for (String key: getRaftNodesMap().getKeySet()) {
@@ -116,29 +127,51 @@ public class Raft {
 		votedFor = null;
 		vote = 0;
 	}
-	public synchronized void vote(RaftNode node) { votedFor = node; }
+	public synchronized void vote(RaftNode node) {
+		votedFor = node;
+	}
 	public synchronized void beVoted(RaftNode node) {
 		if (!node.hasVotedForMe()) {
 			node.setVotedForMe(true);
 			vote++;
 		}
 	}
-	public synchronized int getVote() { return vote; }
-	public synchronized int getVotedForTerm() { return (votedForSomeone()) ? votedForTerm : -1; }
-	public synchronized void setVotedForTerm(int t) { this.votedForTerm = t; }
-	public synchronized boolean votedForSomeone() { return votedFor != null; }
+	public synchronized int getVote() {
+		return vote;
+	}
+	public synchronized int getVotedForTerm() {
+		return (votedForSomeone()) ? votedForTerm : -1;
+	}
+	public synchronized void setVotedForTerm(int t) {
+		this.votedForTerm = t;
+	}
+	public synchronized boolean votedForSomeone() {
+		return votedFor != null;
+	}
 
 	// currentTerm
-	public synchronized int incrementCurrentTerm() { return ++currentTerm; }
-	public synchronized int getCurrentTerm() { return currentTerm; }
+	public synchronized int incrementCurrentTerm() {
+		return ++currentTerm;
+	}
+	public synchronized int getCurrentTerm() {
+		return currentTerm;
+	}
 
 	// timeout
-	public int getTimeout() { return timeout; }
+	public int getTimeout() {
+		return timeout;
+	}
 
 	// time
-	public void resetTime() { time = 0; }
-	public int incrementTime() { return ++time; }
-	public int getTime() { return time; }
+	public void resetTime() { 
+		time = 0; 
+	}
+	public int incrementTime() { 
+		return ++time;
+	}
+	public int getTime() {
+		return time;
+	}
 	public void comebackTimeCount() {
 		synchronized(tcThread) {
 			tcThread.standFlag();
@@ -147,12 +180,20 @@ public class Raft {
 	}
 
 	// commitIndex
-	public synchronized int getCommitIndex() { return commitIndex; }
-	public synchronized void setCommitIndex(int cIndex) { this.commitIndex = cIndex; }
+	public synchronized int getCommitIndex() {
+		return commitIndex;
+	}
+	public synchronized void setCommitIndex(int cIndex) { 
+		this.commitIndex = cIndex;
+	}
 
 	// lastApplied
-	public synchronized int getLastApplied() { return lastApplied; }
-	public synchronized int incrementLastApplied() { return ++lastApplied; }
+	public synchronized int getLastApplied() {
+		return lastApplied;
+	}
+	public synchronized int incrementLastApplied() {
+		return ++lastApplied;
+	}
 
 	// nextIndex
 	public void resetNextIndex() {
@@ -171,7 +212,9 @@ public class Raft {
 	}
 
 	// leaderElection
-	public void stopLeaderElect() { leThread.sitFlag(); }
+	public void stopLeaderElect() {
+		leThread.sitFlag();
+	}
 	public void comebackLeaderElect() {
 		synchronized (leThread) {
 			leThread.standFlag();
@@ -196,10 +239,14 @@ public class Raft {
 	}
 
 	// raftMap
-	public RaftNodesMap getRaftNodesMap() { return raftNodesMap; }
+	public RaftNodesMap getRaftNodesMap() {
+		return raftNodesMap;
+	}
 
 	// clientMap
-	public ClientNodesMap getClientNodesMap() { return clientNodesMap; }
+	public ClientNodesMap getClientNodesMap() { 
+		return clientNodesMap;
+	}
 
 	// initialization
 	public void init() {
@@ -207,7 +254,7 @@ public class Raft {
 			BufferedReader br = new BufferedReader(new FileReader(configFile));
 
 			String line = br.readLine();
-			maxNum = Integer.parseInt(line);
+			serverNum = Integer.parseInt(line);
 			while((line = br.readLine()) != null) {
 				if (line.length() == 0) continue;
 

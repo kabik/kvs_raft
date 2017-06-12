@@ -36,12 +36,12 @@ public class CheckThread extends AbstractThread {
 							if (rNode.getWrittenIndex() >= n) {
 								count++;
 							}
-							if (count > raft.getMaxNum() / 2) {
+							if (count > raft.getServerNum() / 2) {
 								raft.setCommitIndex(n);
 								break outside;
 							}
 						}
-						if (count > raft.getMaxNum() / 2) {
+						if (count > raft.getServerNum() / 2) {
 							raft.setCommitIndex(n);
 							break outside;
 						}

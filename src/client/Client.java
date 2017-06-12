@@ -36,8 +36,6 @@ public class Client {
 	private int commandNum = 0;
 	private int count = 0;
 	
-	//private int waitIndex = -1;
-
 	long start = -1;
 	boolean finish = false;
 
@@ -53,10 +51,6 @@ public class Client {
 			openConnection();
 			socket.setSoTimeout(SOCKET_TIMEOUT);
 
-			//rvThread = new ReceiveThread(this);
-			//rvThread.start();
-			//sThread = new SendThread(this);
-			//sThread.start();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -65,7 +59,6 @@ public class Client {
 	public int getRaftPort() { return raft_port; }
 	public String getRaftAddress() { return raft_address; }
 	public void setRaftAddress(String raft_address) { this.raft_address = raft_address; }
-	//public List<String> getInputQueue() { return inputList; }
 	public int getMode() { return mode; }
 	public int getMaxEntry() { return max_entry; }
 	public boolean getWaitCommit() { return waitCommit; }
@@ -89,7 +82,6 @@ public class Client {
 	}
 	public void closeConnection() throws IOException {
 		socket.close();
-		//System.out.println("close connection to " + socket.getRemoteSocketAddress());
 	}
 
 	public String change_raft_host() {
@@ -190,7 +182,6 @@ public class Client {
 	public void process(String message) throws IOException {
 		String strArr[] = message.split(" ");
 		if (strArr[0].equals("commit")) {
-		//if (strArr[0].equals("commit") && Integer.parseInt(strArr[1]) == waitIndex) {
 			setWaitCommit(false);
 			
 			if (getCount() % 2000 == 0) 
@@ -203,9 +194,6 @@ public class Client {
 				finish = true;
 				closeConnection();
 			}
-		/*} else if (strArr[0].equals("receive")) {
-			waitIndex = Integer.parseInt(strArr[1]);
-		*/
 		} else if (strArr[0].equals("redirect")) {
 			System.out.println("redirect to " + strArr[1]);
 			setRaftAddress(strArr[1]);
@@ -216,7 +204,7 @@ public class Client {
 			for (int i = 0; i < max_entry; i++) {
 				decrementCount();
 			}
-		}// else if (strArr[0].equals("keepAlive")) {	System.out.println(strArr[0]); }
+		}
 	}
 
 	private void run() throws IOException {

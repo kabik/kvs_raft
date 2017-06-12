@@ -25,7 +25,7 @@ public class RaftNode extends Server {
 	 * address is an IPAddress or a hostname
 	 */
 	public RaftNode(Raft raft, String address) {
-		super(raft, address, RaftNode.NODE_TYPE);
+		super(raft, address);
 
 		this.matchIndex = 0;
 		this.writtenIndex = -1;
@@ -51,35 +51,71 @@ public class RaftNode extends Server {
 		}
 	}
 
-	public boolean isMe() { return isme; }
+	public boolean isMe() {
+		return isme;
+	}
 
-	public synchronized int getNextIndex() { return nextIndex; }
-	public synchronized void setNextIndex(int nIndex) { this.nextIndex = nIndex; }
+	public synchronized int getNextIndex() {
+		return nextIndex;
+	}
+	public synchronized void setNextIndex(int nIndex) {
+		this.nextIndex = nIndex;
+	}
 	public synchronized int decrementNextIndex() {
 		if (--nextIndex < 0)
 			nextIndex = 0;
 		return nextIndex;
 	}
 
-	public synchronized int getMatchIndex() { return matchIndex; }
-	public synchronized void setMatchIndex(int mIndex) { this.matchIndex = mIndex; }
-	public synchronized int incrementMatchIndex() { return ++matchIndex; }
+	public synchronized int getMatchIndex() {
+		return matchIndex;
+	}
+	public synchronized void setMatchIndex(int mIndex) {
+		this.matchIndex = mIndex;
+	}
+	public synchronized int incrementMatchIndex() {
+		return ++matchIndex;
+	}
 
-	public synchronized void initSentIndex() { this.sentIndex = getNextIndex() - 1; }
-	public synchronized void setSentIndex(int sentIndex) { this.sentIndex = sentIndex; }
-	public synchronized int getSentIndex() { return sentIndex; }	
+	public synchronized void initSentIndex() {
+		this.sentIndex = getNextIndex() - 1;
+	}
+	public synchronized void setSentIndex(int sentIndex) {
+		this.sentIndex = sentIndex;
+	}
+	public synchronized int getSentIndex() {
+		return sentIndex;
+	}	
 	
-	public synchronized void setWrittenIndex(int preWrittenIndex) { this.writtenIndex = preWrittenIndex; }
-	public synchronized int getWrittenIndex() { return writtenIndex; }
+	public synchronized void setWrittenIndex(int preWrittenIndex) {
+		this.writtenIndex = preWrittenIndex;
+	}
+	public synchronized int getWrittenIndex() {
+		return writtenIndex;
+	}
 
-	public synchronized void setVotedForMe(boolean b) { this.votedForMe = b; }
-	public synchronized boolean hasVotedForMe() { return votedForMe; }
+	public synchronized void setVotedForMe(boolean b) {
+		this.votedForMe = b;
+	}
+	public synchronized boolean hasVotedForMe() {
+		return votedForMe;
+	}
 
-	public void setRVRPCsent(boolean b) { this.rvrpc_sent = b; }
-	public boolean hasSentRVRPC() { return rvrpc_sent; }
+	public void setRVRPCsent(boolean b) {
+		this.rvrpc_sent = b;
+	}
+	public boolean hasSentRVRPC() {
+		return rvrpc_sent;
+	}
 
-	public synchronized boolean isWaitingForAcception() { return sentIndex >= nextIndex; }
+	public synchronized boolean isWaitingForAcception() {
+		return sentIndex >= nextIndex;
+	}
 	
-	public synchronized void setPriority(int priority) { this.priority = priority; }
-	public synchronized int getPriority() { return priority; }
+	public synchronized void setPriority(int priority) {
+		this.priority = priority;
+	}
+	public synchronized int getPriority() {
+		return priority;
+	}
 }

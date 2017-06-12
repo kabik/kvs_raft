@@ -6,8 +6,6 @@ public class TimeCountThread extends AbstractThread {
 	private static final int INTERVAL = 1;
 	
 	private long start = -1;
-	//private long end = -1;
-	//private boolean finish = false;
 	
 	public TimeCountThread(Raft raft) {
 		super(raft);
@@ -34,15 +32,6 @@ public class TimeCountThread extends AbstractThread {
 					System.out.println("timeout");
 					raft.runFor();
 				}
-
-				/*if (end < 0 && raft.getKVS().size() >= 50000) {
-					end = System.currentTimeMillis();
-				}
-				if (start > 0 && end > 0 && !finish) {
-					System.out.println("Input time is " + (end - start));
-					finish = true;
-				}*/
-				
 				sleep(INTERVAL);
 			}
 		} catch(Exception e) {

@@ -15,10 +15,6 @@ public class AppendEntryThread extends AbstractThread {
 	}
 
 	private void appendEntry(RaftNode rNode) throws IOException {
-		//if (rNode.isWaitingForAcception()) { return; }
-
-		//long start = System.nanoTime();
-
 		int prevLogIndex = rNode.getNextIndex() - 1;
 		int prevLogTerm = (prevLogIndex < 0) ? -1 : raft.getLog().get(prevLogIndex).getTerm();
 
@@ -91,7 +87,6 @@ public class AppendEntryThread extends AbstractThread {
 					try {
 						appendEntry(rNode);
 					} catch (IOException e) {
-						//e.printStackTrace();
 						System.out.println("fail in sending Append Entry RPC to " + rNode);
 						try {
 							rNode.closeConnection();
