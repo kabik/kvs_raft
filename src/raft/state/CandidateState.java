@@ -5,5 +5,15 @@ public class CandidateState extends State {
 		super("Candidate");
 	}
 	@Override
-	public boolean isCandidate() { return true; }
+	public boolean isLeader() {
+		return false;
+	}
+	@Override
+	public boolean isCandidate() { 
+		return true; 
+	}
+	@Override
+	public boolean isFollower() {
+		return false;
+	}
 }

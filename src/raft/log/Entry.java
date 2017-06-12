@@ -16,6 +16,10 @@ public class Entry {
 		return sb.toString();
 	}
 	
-	public int getTerm() { return term; }
-	public String getCommand() { return command; }
+	public int getTerm() {
+		return term;
+	}
+	public String getCommand() {
+		return command;
+	}
 }

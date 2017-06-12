@@ -5,5 +5,15 @@ public class LeaderState extends State {
 		super("Leader");
 	}
 	@Override
-	public boolean isLeader() { return true; }
+	public boolean isLeader() {
+		return true;
+	}
+	@Override
+	public boolean isCandidate() {
+		return false;
+	}
+	@Override
+	public boolean isFollower() {
+		return false;
+	}
 }
