@@ -13,26 +13,24 @@ import java.util.Collections;
 public class Log {
 	public static final int GROUP_COMMIT_SIZE = 1;
 
-	String filename = "/tmp/kvs_raft/log_";
 	private FileOutputStream fos;
 
-	private File logfile;
+	private File logFile;
 	private List<Entry> entryList;
 	private int commit_count;
 	private int preWrittenIndex;
 	private int writtenIndex;
 
-	public Log(String surfix) {
-		filename = filename + surfix;
-		logfile = new File(filename);
+	public Log(String fileName) {
+		logFile = new File(fileName);
 		commit_count = 0;
 		preWrittenIndex = -1;
 		writtenIndex = -1;
 
 		entryList = Collections.synchronizedList(new LinkedList<Entry>());
 		try {
-			fos = new FileOutputStream(logfile, true);
-			BufferedReader br = new BufferedReader(new FileReader(filename));
+			fos = new FileOutputStream(logFile, true);
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] s = line.split(":", 2);
@@ -47,14 +45,12 @@ public class Log {
 	}
 
 	// write all line over the file
-	/* shuuseishuusei */
 	private synchronized void writeAll() {
-		System.out.println("writeAll"); //
 		boolean success = false;
 		while (!success) {
 			try {
 				fos.close();
-				fos = new FileOutputStream(logfile, false);
+				fos = new FileOutputStream(logFile, false);
 				for (Entry entry : entryList) {
 					fos.write((entry.toString()+'\n').getBytes());
 				}
@@ -140,16 +136,30 @@ public class Log {
 		commit_count = 0;
 		writtenIndex = preWrittenIndex;
 	}
-	public String getFilename() { return this.filename; }
-	public Entry get(int index) { return entryList.get(index); }
-	public Entry getLastEntry() { return entryList.get(entryList.size()-1); }
-	public boolean match(int index, int term) {
-		return index < 0 || entryList.size() < index || ( entryList.size() > index && entryList.get(index).getTerm() == term );
+	public Entry get(int index) {
+		return entryList.get(index);
 	}
-	public boolean isEmpty() { return entryList.isEmpty(); }
-	public synchronized int size() { return entryList.size(); }
-	public int lastIndex() { return entryList.size() - 1; }
-	public int lastLogTerm() { return (entryList.size() > 0) ? entryList.get(lastIndex()).getTerm() : -1; }
-
-	public int getWrittenIndex() { return writtenIndex; }
+	public Entry getLastEntry() {
+		return entryList.get(entryList.size()-1);
+	}
+	public boolean match(int index, int term) {
+		return index < 0 ||
+				entryList.size() < index ||
+				( entryList.size() > index && entryList.get(index).getTerm() == term );
+	}
+	public boolean isEmpty() {
+		return entryList.isEmpty();
+	}
+	public synchronized int size() {
+		return entryList.size();
+	}
+	public int lastIndex() {
+		return entryList.size() - 1;
+	}
+	public int lastLogTerm() {
+		return (entryList.size() > 0) ? entryList.get(lastIndex()).getTerm() : -1;
+	}
+	public int getWrittenIndex() {
+		return writtenIndex;
+	}
 }

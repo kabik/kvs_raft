@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import kvs.KVS;
 import raft.server.ClientNode;
 import raft.server.ClientNodesMap;
 import raft.server.RaftNode;
@@ -18,6 +17,8 @@ import raft.server.RaftNodesMap;
 import raft.server.Server;
 import raft.state.*;
 import raft.thread.*;
+import stateMachine.KVS;
+import stateMachine.StateMachine;
 import raft.log.*;
 
 public class Raft {
@@ -29,7 +30,7 @@ public class Raft {
 	private RaftNodesMap raftNodesMap;
 	private ClientNodesMap clientNodesMap;
 	private State state;
-	KVS kvs;
+	private StateMachine stateMachine;
 	private int currentTerm, timeout, time, vote, votedForTerm, commitIndex, lastApplied;
 	private RaftNode votedFor, me;
 	private Log log;
@@ -43,16 +44,16 @@ public class Raft {
 	LeaderElectThread leThread;
 	CheckThread cThread;
 
-	public Raft(KVS kvs, String configFileName, String logFileSufix) {
-		this.kvs = kvs;
+	public Raft(String configFileName, String logFileName) {
+		this.stateMachine = new KVS();
 		this.configFile = new File(configFileName);
-		this.log = new Log(logFileSufix);
+		this.log = new Log(logFileName);
 		this.raftNodesMap = new RaftNodesMap();
 		this.clientNodesMap = new ClientNodesMap();
 	}
 
-	// KVS
-	public KVS getKVS() { return kvs; }
+	// stateMachine
+	public StateMachine getStateMachine() { return stateMachine; }
 
 	// me
 	public RaftNode getMe() { return me; }
@@ -63,14 +64,9 @@ public class Raft {
 
 	// apply log to KVS
 	public void apply() {
-		while (getCommitIndex() > getLastApplied() && getLastApplied()+1 < log.size()) {
-
-			String s[] = log.get(getLastApplied()+1).getCommand().split(" ");
-			if (s[0].equals("put")) {
-				kvs.put(s[1], s[2]);
-			} else if (s[0].equals("delete")) {
-				kvs.remove(s[1]);
-			}
+		while (getCommitIndex() > getLastApplied() &&
+				getLastApplied()+1 < log.size()) {
+			getStateMachine().apply(log.get(getLastApplied()+1).getCommand());
 			incrementLastApplied();
 		}
 
@@ -80,7 +76,6 @@ public class Raft {
 					ClientNode cn = clientNodesMap.get(key);
 					int waitLogIndex = cn.getWaitIndex();
 					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {
-						//send(cn, "commit " + cn.getWaitIndex());
 						send(cn, "commit");
 						cn.setWaitIndex(-1);
 					}
@@ -88,20 +83,7 @@ public class Raft {
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			
-			//// debug
-			/*if (log.size() > 400000) {
-				TreeMap<String, ClientNode> cloneMap = clientNodesMap.getCloneOfMap();
-				for (String key : cloneMap.keySet()) {
-					ClientNode cn = clientNodesMap.get(key);
-					System.out.println(cn + " : " + cn.lastWaitIndex() + " " + cn.getWaitIndex());
-				}
-				System.exit(0);
-			}*/
-			////
-			
 		}
-		//System.out.println(kvs.size() + " "+ log.size()); //////
 	}
 
 	// max number of servers
@@ -140,7 +122,6 @@ public class Raft {
 			node.setVotedForMe(true);
 			vote++;
 		}
-		//System.out.println(vote + " votes");
 	}
 	public synchronized int getVote() { return vote; }
 	public synchronized int getVotedForTerm() { return (votedForSomeone()) ? votedForTerm : -1; }
@@ -298,19 +279,13 @@ public class Raft {
 			e.printStackTrace();
 		}
 
-		if (next) {
-			incrementCurrentTerm();
-			System.out.println("next term:" + getCurrentTerm() + " state:" + state);
-		} else {
-			//System.out.println("term:" + getCurrentTerm() + " state:" + state);
-		}
+		System.out.println("next term:" + getCurrentTerm() + " state:" + state);
+
 		resetTime();
 		resetVote();
 
 		if (state.isLeader()) {
 			comebackAppendEntry();
-			//comebackTimeCount();
-			//comebackClientInput();
 		} else if (state.isCandidate()) {
 			comebackLeaderElect();
 			comebackTimeCount();

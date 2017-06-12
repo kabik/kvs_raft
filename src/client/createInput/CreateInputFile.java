@@ -1,8 +1,8 @@
-package create_input;
+package client.createInput;
 
 import java.util.TreeSet;
 
-public class Create_Inputfile {
+public class CreateInputFile {
 	public static void main(String args[]) {
 		TreeSet<String> set = new TreeSet<String>();
 		int MAX = Integer.parseInt(args[0]);

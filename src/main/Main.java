@@ -1,12 +1,12 @@
-package kvs;
+package main;
 
-import kvs.KVS;
+import raft.Raft;
 
 public class Main {
-	KVS kvs;
-
 	Main(String configFileName, String logFileName) {
-		kvs = new KVS(configFileName, logFileName);
+		Raft raft = new Raft(configFileName, logFileName);
+		raft.init();
+		raft.start();
 	}
 
 	public static void main(String[] args) {

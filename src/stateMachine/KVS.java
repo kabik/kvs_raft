@@ -1,30 +1,34 @@
-package kvs;
+package stateMachine;
 
 import java.util.TreeMap;
 
 import raft.Raft;
 
-public class KVS {
+public class KVS extends StateMachine {
 	TreeMap<String, String> map = new TreeMap<String, String>();
 	Raft raft;
 	
-	public KVS(String configFileName, String logFileSufix) {
-		raft = new Raft(this, configFileName, logFileSufix);
-		raft.init();
-		raft.start();
+	public KVS() {
 	}
 	
-	public int size() {
-		return map.size();
+	public void apply(String commandStr) {
+		String s[] = commandStr.split(" ");
+		if (s[0].equals("put")) {
+			put(s[1], s[2]);
+		} else if (s[0].equals("delete")) {
+			remove(s[1]);
+		} else if (s[0].equals("get")) {
+			get(s[1]);
+		}
 	}
 	
-	public void put(String key, String value) {
+	private void put(String key, String value) {
 		map.put(key, value);
 	}
-	public String get(String key) {
+	private String get(String key) {
 		return map.get(key);
 	}
-	public String remove(String key) {
+	private String remove(String key) {
 		String ret = map.remove(key);
 		return ret;
 	}
