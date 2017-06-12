@@ -19,7 +19,6 @@ public class KVS {
 	}
 	
 	public void put(String key, String value) {
-		//System.out.println("put " + key + " " + value);
 		map.put(key, value);
 	}
 	public String get(String key) {
