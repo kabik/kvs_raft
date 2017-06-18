@@ -23,7 +23,7 @@ public class AppendEntryThread extends AbstractThread {
 		 * <command> <leader's term> <prevLogIndex> <prevLogTerm> <leaderCommit> <log entry,log entry...>
 		 */
 		StringBuilder basicMessageSB = new StringBuilder();
-		basicMessageSB.append(ProcessMessageThread.APPEND_ENTRY_STR).append(' ').append(raft.getCurrentTerm())
+		basicMessageSB.append(ProcessMessageThread.APPEND_ENTRY_CHAR).append(' ').append(raft.getCurrentTerm())
 		.append(' ').append(prevLogIndex)
 		.append(' ').append(prevLogTerm).append(' ').append(raft.getCommitIndex()).append(' ');
 

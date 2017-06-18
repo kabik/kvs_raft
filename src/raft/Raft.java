@@ -76,7 +76,7 @@ public class Raft {
 					ClientNode cn = clientNodesMap.get(key);
 					int waitLogIndex = cn.getWaitIndex();
 					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {
-						send(cn, "commit");
+						send(cn, "C");
 						cn.setWaitIndex(-1);
 					}
 				}				

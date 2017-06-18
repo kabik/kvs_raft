@@ -42,7 +42,7 @@ public class LeaderElectThread extends AbstractThread {
 					// command, candidate's term, candidate's IP, lastLogIndex, lastLogTerm
 					//System.out.println("send RV RPC to " + rNode);
 					try {
-						raft.send(rNode, ProcessMessageThread.REQUEST_VOTE_STR + " "+ raft.getCurrentTerm() +
+						raft.send(rNode, ProcessMessageThread.REQUEST_VOTE_CHAR + " "+ raft.getCurrentTerm() +
 								" " + raft.getLog().lastIndex() + " " + raft.getLog().lastLogTerm());
 						rNode.setRVRPCsent(true);
 					} catch (IOException e) {

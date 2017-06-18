@@ -13,12 +13,12 @@ import raft.state.FollowerState;
 public class ProcessMessageThread extends AbstractThread {
 	public static final int INTERVAL = 1;
 
-	public static final String APPEND_ENTRY_STR = "appendEntry";
-	public static final String ACCEPT_AE_STR = "acceptAERPC";
-	public static final String REJECT_AE_STR = "rejectAERPC";
-	public static final String REQUEST_VOTE_STR = "requestVote";
-	public static final String ACCEPT_RVRPC_STR = "acceptRVRPC";
-	public static final String CLIENT_INPUT_STR = "clientInput";
+	public static final char APPEND_ENTRY_CHAR = 'a';
+	public static final char ACCEPT_AE_CHAR = 'A';
+	public static final char REJECT_AE_CHAR = 'R';
+	public static final char REQUEST_VOTE_CHAR = 'v';
+	public static final char ACCEPT_RVRPC_CHAR = 'V';
+	public static final char CLIENT_INPUT_CHAR = 'c';
 
 	private Socket socket;
 
@@ -53,7 +53,7 @@ public class ProcessMessageThread extends AbstractThread {
 			while(!_halt && !(str = server.receive()).isEmpty()) {
 				String sArr[] = str.split(" ", 3);
 
-				String order = sArr[0];
+				char order = sArr[0].charAt(0);
 				int senderTerm = Integer.parseInt(sArr[1]);
 				String contents = (sArr.length < 3) ? "" : sArr[2];
 
@@ -64,7 +64,7 @@ public class ProcessMessageThread extends AbstractThread {
 					while (senderTerm > raft.getCurrentTerm()) { raft.term(true); }				
 				}
 
-				if (order.equals(APPEND_ENTRY_STR)) {
+				if (order == APPEND_ENTRY_CHAR) {
 					String asArr[] = contents.split(" ", 4);
 					int prevLogIndex = Integer.parseInt(asArr[0]);
 					int prevLogTerm = Integer.parseInt(asArr[1]);
@@ -96,7 +96,7 @@ public class ProcessMessageThread extends AbstractThread {
 						if (senderTerm < raft.getCurrentTerm()) 
 							System.out.println("term : "  + raft.getCurrentTerm());
 						try {
-							raft.send(server, REJECT_AE_STR + " " + raft.getCurrentTerm());
+							raft.send(server, REJECT_AE_CHAR + " " + raft.getCurrentTerm());
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -116,7 +116,7 @@ public class ProcessMessageThread extends AbstractThread {
 							raft.comebackCheckThread(); // iru?
 						}
 						try {
-							raft.send(server, ACCEPT_AE_STR + " " + raft.getCurrentTerm() + " " + writtenIndex);
+							raft.send(server, ACCEPT_AE_CHAR + " " + raft.getCurrentTerm() + " " + writtenIndex);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -126,7 +126,7 @@ public class ProcessMessageThread extends AbstractThread {
 					if (leaderCommit > raft.getCommitIndex()) {
 						raft.setCommitIndex(Math.min(leaderCommit, raft.getLog().lastIndex()));
 					}
-				} else if (order.equals(ACCEPT_AE_STR)) {
+				} else if (order == ACCEPT_AE_CHAR) {
 					// success appendEntry RPC
 					RaftNode sender = (RaftNode)server;
 					if (sender.isWaitingForAcception()) {
@@ -136,12 +136,12 @@ public class ProcessMessageThread extends AbstractThread {
 						raft.comebackCheckThread();
 					}
 					sender.setWrittenIndex(Integer.parseInt(contents));
-				} else if (order.equals(REJECT_AE_STR)) {
+				} else if (order == REJECT_AE_CHAR) {
 					// fail appendEntry RPC
 					RaftNode sender = (RaftNode)server;
 					sender.decrementNextIndex();
 					sender.initSentIndex();
-				} else if (order.equals(REQUEST_VOTE_STR)) {
+				} else if (order == REQUEST_VOTE_CHAR) {
 					RaftNode sender = (RaftNode)server;
 					String asArr[] = contents.split(" ");
 					int lastLogIndex = Integer.parseInt(asArr[0]);
@@ -156,21 +156,19 @@ public class ProcessMessageThread extends AbstractThread {
 						raft.resetTime();
 						raft.vote(sender);
 						try {
-							raft.send(sender, ACCEPT_RVRPC_STR + " " + raft.getCurrentTerm());
+							raft.send(sender, ACCEPT_RVRPC_CHAR + " " + raft.getCurrentTerm());
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
 					}// else {} // not vote
-				} else if (order.equals(ACCEPT_RVRPC_STR)) {
+				} else if (order == ACCEPT_RVRPC_CHAR) {
 					RaftNode sender = (RaftNode)server;
 					raft.beVoted(sender);
-				} else if (order.equals(CLIENT_INPUT_STR)) {
+				} else if (order == CLIENT_INPUT_CHAR) {
 					ClientNode cNode = (ClientNode)server;
 
 					if (raft.getState().isLeader()) {
-						String contentsStr[] = contents.split(" ", 2);
-						//String mode = contentsStr[0];
-						String entriesStr[] = contentsStr[1].split(",");
+						String entriesStr[] = contents.split(",");
 
 						Entry entries[] = new Entry[entriesStr.length];
 						for (int i = 0; i < entriesStr.length; i++) {

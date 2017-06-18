@@ -9,9 +9,6 @@ import java.net.UnknownHostException;
 import java.net.Socket;
 import java.util.ArrayList;
 
-/*
- * This class have informations of client nodes.
- */
 public class Client {
 	static final int BULK_INPUT_MODE = 1;
 	static final int ONE_BY_ONE_INPUT_MODE = 2;
@@ -69,14 +66,12 @@ public class Client {
 	public int getCount() { return count; }
 
 	public void openConnection(Socket socket) throws IOException {
-		System.out.println("open connection : " + socket.getRemoteSocketAddress());
 		this.socket = socket;
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
 	public void openConnection() throws UnknownHostException, IOException {
 		socket = new Socket(raft_address, raft_port);
-		System.out.println("open connection : " + socket);
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
@@ -143,7 +138,7 @@ public class Client {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("clientInput -1 ").append("wait").append(' ');
+		sb.append("c -1 ").append(' ');
 
 		try {
 			if (getCount() < inputList.size()) {
@@ -158,17 +153,14 @@ public class Client {
 
 				send(sb.toString());
 				incrementCount();
-				//System.out.println(sb); //
 			}
 
 			// success
-			//if (getMode() == Client.ONE_BY_ONE_INPUT_MODE)
 			setWaitCommit(true);
 			//System.out.println("send : " + sb.toString());
 		} catch (IOException e) {
 			//e.printStackTrace();
 			System.out.println("send faled");
-			//client.getInputQueue().addAll(0, tmpQueue);
 			change_raft_host();
 		} catch (IndexOutOfBoundsException e) {
 			try {
@@ -180,13 +172,16 @@ public class Client {
 		}
 	}
 	public void process(String message) throws IOException {
+		//System.out.println(message);////
 		String strArr[] = message.split(" ");
-		if (strArr[0].equals("commit")) {
+		if (strArr[0].equals("C")) {
 			setWaitCommit(false);
 			
 			if (getCount() % 2000 == 0) 
-				System.out.println(socket.getInetAddress() + ":" + socket.getPort() + " > " + getCount() + " input end.");
-			if (start < 0) { start = System.currentTimeMillis(); }
+				System.out.println(
+						socket.getInetAddress() + ":" + socket.getPort() + " > " + getCount() + " input end.");
+			if (start < 0) 
+				start = System.currentTimeMillis();
 			if (getCount() >= getCommandNum() && !finish) {
 				long end = System.currentTimeMillis();
 				System.out.println(socket.getInetAddress() + ":" + socket.getPort() + " > it takes " + (end - start) + " ms.");
@@ -195,7 +190,7 @@ public class Client {
 				closeConnection();
 			}
 		} else if (strArr[0].equals("redirect")) {
-			System.out.println("redirect to " + strArr[1]);
+			//System.out.println("redirect to " + strArr[1]);
 			setRaftAddress(strArr[1]);
 			closeConnection();
 			openConnection();
@@ -234,9 +229,8 @@ public class Client {
 			}
 
 			int forwardingPort = Integer.parseInt(args[1]);
-			Client client = new Client(mode, forwardingPort);
 			try {
-				client.run();
+				new Client(mode, forwardingPort).run();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
