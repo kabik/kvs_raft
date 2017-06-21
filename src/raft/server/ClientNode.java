@@ -3,14 +3,14 @@ package raft.server;
 import raft.Raft;
 
 public class ClientNode extends Server {
-	String mode;
-	int waitIndex;
-	int lastWaitIndex;
+	private String mode;
+	private int waitIndex;
+	private boolean isWaitingForCommit;
 
 	public ClientNode(Raft raft, String hostname) {
 		super(raft, hostname);
 		this.waitIndex = -1;
-		this.lastWaitIndex = -1;
+		this.isWaitingForCommit = false;
 	}
 	
 	public void setMode(String mode) {
@@ -19,10 +19,20 @@ public class ClientNode extends Server {
 	public String getMode() {
 		return mode;
 	}
-	public void setWaitIndex(int waitLogIndex) {
+	public void waitForCommit(int waitLogIndex) {
 		this.waitIndex = waitLogIndex;
+		this.isWaitingForCommit = true;
+	}
+	public void waitForCommit() {
+		this.isWaitingForCommit = true;
+	}
+	public void releaseWait() {
+		this.isWaitingForCommit = false;
 	}
 	public int getWaitIndex() {
 		return waitIndex;
+	}
+	public boolean isWaitingForCommit() {
+		return isWaitingForCommit;
 	}
 }

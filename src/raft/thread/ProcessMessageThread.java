@@ -18,7 +18,8 @@ public class ProcessMessageThread extends AbstractThread {
 	public static final char REJECT_AE_CHAR = 'R';
 	public static final char REQUEST_VOTE_CHAR = 'v';
 	public static final char ACCEPT_RVRPC_CHAR = 'V';
-	public static final char CLIENT_INPUT_CHAR = 'c';
+	public static final char CLIENT_INPUT_CHAR = 'i';
+	public static final char CLIENT_RESNEDREQUEST_CHAR = 's';
 
 	private Socket socket;
 
@@ -176,11 +177,21 @@ public class ProcessMessageThread extends AbstractThread {
 								entries[i] = new Entry(raft.getCurrentTerm(), entriesStr[i]);
 						}
 						int lastIndex = raft.getLog().add(entries);
-						cNode.setWaitIndex(lastIndex);
+						cNode.waitForCommit(lastIndex);
 
 						raft.comebackCheckThread();
 					} else {
 						raft.send(cNode, "redirect " + raft.getVotedFor().getIPAddress());
+					}
+				} else if (order == CLIENT_RESNEDREQUEST_CHAR) {
+					ClientNode cNode = (ClientNode)server;
+					
+					if (raft.getState().isLeader()) {
+						cNode.waitForCommit();
+						System.out.println("resend");
+					} else {
+						raft.send(cNode, "redirect " + raft.getVotedFor().getIPAddress());
+						System.out.println("redirect");
 					}
 				} else {
 					System.out.println("illegal command:" + order);

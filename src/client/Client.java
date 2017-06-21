@@ -13,9 +13,9 @@ public class Client {
 	static final int BULK_INPUT_MODE = 1;
 	static final int ONE_BY_ONE_INPUT_MODE = 2;
 
-	static final int SOCKET_TIMEOUT = 0;	
+	static final int SOCKET_TIMEOUT = 1000;	
 
-	static final int BACKLOG_SIZE = 1000;
+	static final int BACKLOG_SIZE = 100;
 	static final int BULK_MAX_ENTRY = 100;
 
 	private Socket socket;
@@ -32,7 +32,7 @@ public class Client {
 
 	private int commandNum = 0;
 	private int count = 0;
-	
+
 	long start = -1;
 	boolean finish = false;
 
@@ -138,7 +138,7 @@ public class Client {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("c -1 ").append(' ');
+		sb.append("i -1 ").append(' ');
 
 		try {
 			if (getCount() < inputList.size()) {
@@ -157,7 +157,7 @@ public class Client {
 
 			// success
 			setWaitCommit(true);
-			//System.out.println("send : " + sb.toString());
+			System.out.println("send : " + sb.toString());
 		} catch (IOException e) {
 			//e.printStackTrace();
 			System.out.println("send faled");
@@ -172,11 +172,11 @@ public class Client {
 		}
 	}
 	public void process(String message) throws IOException {
-		//System.out.println(message);////
+		System.out.println(message);////
 		String strArr[] = message.split(" ");
 		if (strArr[0].equals("C")) {
 			setWaitCommit(false);
-			
+
 			if (getCount() % 2000 == 0) 
 				System.out.println(
 						socket.getInetAddress() + ":" + socket.getPort() + " > " + getCount() + " input end.");
@@ -190,7 +190,7 @@ public class Client {
 				closeConnection();
 			}
 		} else if (strArr[0].equals("redirect")) {
-			//System.out.println("redirect to " + strArr[1]);
+			System.out.println("redirect");
 			setRaftAddress(strArr[1]);
 			closeConnection();
 			openConnection();
@@ -202,11 +202,24 @@ public class Client {
 		}
 	}
 
-	private void run() throws IOException {
+	private void run() {
 		while (!finish) {
 			sendInput();
-			String str = receive();
-			process(str);
+			try {
+				String str = receive();
+				process(str);
+			} catch (IOException e) {
+				e.printStackTrace();
+				if (getWaitCommit()) {
+					System.out.println("request resend");
+					try {
+						send("s -1 ");
+						System.out.println("request resend");
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
@@ -229,11 +242,7 @@ public class Client {
 			}
 
 			int forwardingPort = Integer.parseInt(args[1]);
-			try {
-				new Client(mode, forwardingPort).run();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			new Client(mode, forwardingPort).run();
 		}
 	}
 }

@@ -24,7 +24,7 @@ import raft.log.*;
 public class Raft {
 	static int TIMEOUT_MIN   = 2000;
 	static int TIMEOUT_WIDTH = 1000;
-	public static final int BACKLOG_SIZE = 10000;
+	public static final int BACKLOG_SIZE = 100;
 	int serverNum;
 
 	private RaftNodesMap raftNodesMap;
@@ -75,9 +75,11 @@ public class Raft {
 				for (String key : clientNodesMap.getKeySet()) {
 					ClientNode cn = clientNodesMap.get(key);
 					int waitLogIndex = cn.getWaitIndex();
-					if (waitLogIndex >= 0 && getLastApplied() >= waitLogIndex) {
+					if (cn.isWaitingForCommit() && 
+							//waitLogIndex >= 0 &&
+							getLastApplied() >= waitLogIndex) {
 						send(cn, "C");
-						cn.setWaitIndex(-1);
+						cn.releaseWait();
 					}
 				}				
 			} catch (IOException e1) {
