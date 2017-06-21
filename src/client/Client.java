@@ -46,32 +46,54 @@ public class Client {
 		try {
 			setInput();
 			openConnection();
-			socket.setSoTimeout(SOCKET_TIMEOUT);
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public int getRaftPort() { return raft_port; }
-	public String getRaftAddress() { return raft_address; }
-	public void setRaftAddress(String raft_address) { this.raft_address = raft_address; }
-	public int getMode() { return mode; }
-	public int getMaxEntry() { return max_entry; }
-	public boolean getWaitCommit() { return waitCommit; }
-	public void setWaitCommit(boolean b) { this.waitCommit = b; }
-	public int getCommandNum() { return commandNum; }
-	public void incrementCount() { count++; }
-	public void decrementCount() { count--; }
-	public int getCount() { return count; }
+	public int getRaftPort() {
+		return raft_port;
+	}
+	public String getRaftAddress() {
+		return raft_address;
+	}
+	public void setRaftAddress(String raft_address) {
+		this.raft_address = raft_address;
+	}
+	public int getMode() {
+		return mode;
+	}
+	public int getMaxEntry() {
+		return max_entry;
+	}
+	public boolean getWaitCommit() {
+		return waitCommit;
+	}
+	public void setWaitCommit(boolean b) { 
+		this.waitCommit = b;
+	}
+	public int getCommandNum() {
+		return commandNum;
+	}
+	public void incrementCount() {
+		count++;
+	}
+	public void decrementCount() {
+		count--; 
+	}
+	public int getCount() {
+		return count;
+	}
 
 	public void openConnection(Socket socket) throws IOException {
 		this.socket = socket;
+		socket.setSoTimeout(SOCKET_TIMEOUT);
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
 	public void openConnection() throws UnknownHostException, IOException {
 		socket = new Socket(raft_address, raft_port);
+		socket.setSoTimeout(SOCKET_TIMEOUT);
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 	}
