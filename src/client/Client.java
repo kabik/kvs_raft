@@ -13,7 +13,7 @@ public class Client {
 	static final int BULK_INPUT_MODE = 1;
 	static final int ONE_BY_ONE_INPUT_MODE = 2;
 
-	static final int SOCKET_TIMEOUT = 1000;	
+	static final int SOCKET_TIMEOUT = 500;	
 
 	static final int BACKLOG_SIZE = 100;
 	static final int BULK_MAX_ENTRY = 100;
@@ -179,7 +179,7 @@ public class Client {
 
 			// success
 			setWaitCommit(true);
-			System.out.println("send : " + sb.toString());
+			//System.out.println("send : " + sb.toString());
 		} catch (IOException e) {
 			//e.printStackTrace();
 			System.out.println("send faled");
@@ -194,7 +194,6 @@ public class Client {
 		}
 	}
 	public void process(String message) throws IOException {
-		System.out.println(message);////
 		String strArr[] = message.split(" ");
 		if (strArr[0].equals("C")) {
 			setWaitCommit(false);
@@ -212,7 +211,6 @@ public class Client {
 				closeConnection();
 			}
 		} else if (strArr[0].equals("redirect")) {
-			System.out.println("redirect");
 			setRaftAddress(strArr[1]);
 			closeConnection();
 			openConnection();
@@ -231,12 +229,12 @@ public class Client {
 				String str = receive();
 				process(str);
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.out.println("Receive Exception");
 				if (getWaitCommit()) {
-					System.out.println("request resend");
 					try {
 						send("s -1 ");
-						System.out.println("request resend");
+						System.out.println("Request resend");
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
