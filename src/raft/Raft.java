@@ -24,7 +24,7 @@ import raft.log.*;
 public class Raft {
 	static int TIMEOUT_MIN   = 2000;
 	static int TIMEOUT_WIDTH = 1000;
-	public static final int BACKLOG_SIZE = 100;
+	public static final int BACKLOG_SIZE = 1000;
 	int serverNum;
 
 	private RaftNodesMap raftNodesMap;
@@ -338,7 +338,7 @@ public class Raft {
 			comebackTimeCount();
 		}
 		
-		System.out.println("term:" + getCurrentTerm() + " state:" + state);
+		//System.out.println("term:" + getCurrentTerm() + " state:" + state);
 	}
 
 	public void start() {

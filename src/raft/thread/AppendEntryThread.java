@@ -7,8 +7,8 @@ import raft.server.*;
 
 public class AppendEntryThread extends AbstractThread {
 	// heartbeat
-	public static final int HEARTBEAT_INTERVAL = 50;
-	public static final int MAX_ENTRY = 1;	// The number of entries in one RPC
+	public static final int HEARTBEAT_INTERVAL = 250;
+	public static final int MAX_ENTRY = 10000;	// The number of entries in one RPC
 
 	public AppendEntryThread(Raft raft) {
 		super(raft);
@@ -41,8 +41,8 @@ public class AppendEntryThread extends AbstractThread {
 			entrySB.append(raft.getLog().get(index));
 		}
 
-		/*if (entrySB.length() > 0)
-			System.out.println(entrySB);*/ //
+		//if (entrySB.length() > 0) { System.out.println(entrySB); } //
+		
 		String message = basicMessageSB.append(entrySB).toString();
 
 		long start = System.currentTimeMillis();

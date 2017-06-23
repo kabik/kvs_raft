@@ -25,11 +25,8 @@ public class TimeCountThread extends AbstractThread {
 					start = System.currentTimeMillis();
 				}
 				
-				if (raft.getTime() % 100 == 0) {
-					//System.out.println("time:"+m.getTime() + " term: " + m.getCurrentTerm() + " state:" + m.getState());
-				}
 				if (raft.incrementTime() >= raft.getTimeout()) {
-					System.out.println("timeout");
+					//System.out.println("timeout");
 					raft.runFor();
 				}
 				sleep(INTERVAL);

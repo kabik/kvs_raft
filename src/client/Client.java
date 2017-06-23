@@ -10,20 +10,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Client {
-	static final int BULK_INPUT_MODE = 1;
-	static final int ONE_BY_ONE_INPUT_MODE = 2;
-
-	static final int SOCKET_TIMEOUT = 500;	
-
+	static final int SOCKET_TIMEOUT = 500;
 	static final int BACKLOG_SIZE = 100;
-	static final int BULK_MAX_ENTRY = 100;
 
 	private Socket socket;
 	private BufferedReader in;
 	private PrintWriter out;
 
-	private int mode;
-	private int max_entry;
+	private int maxEntry;
 	private int raft_port;
 	private String raft_address, server_prefix = "172.16.10.";
 	private int server_no = 21;
@@ -36,9 +30,8 @@ public class Client {
 	long start = -1;
 	boolean finish = false;
 
-	Client(int mode, int forwardingPort) {
-		this.mode = mode;
-		this.max_entry = (mode == BULK_INPUT_MODE) ? BULK_MAX_ENTRY : 1;
+	Client(int maxEntry, int forwardingPort) {
+		this.maxEntry = maxEntry;
 		this.raft_port = forwardingPort;
 		this.raft_address = "172.16.10.13";
 		this.inputList = new ArrayList<String>();
@@ -60,11 +53,8 @@ public class Client {
 	public void setRaftAddress(String raft_address) {
 		this.raft_address = raft_address;
 	}
-	public int getMode() {
-		return mode;
-	}
 	public int getMaxEntry() {
-		return max_entry;
+		return maxEntry;
 	}
 	public boolean getWaitCommit() {
 		return waitCommit;
@@ -142,7 +132,6 @@ public class Client {
 					inputList.add(line);
 				}
 			} catch (ConnectException e) {
-				//e.printStackTrace();
 				System.out.println("fale in connection to " + raft_address);
 				change_raft_host();
 			} catch (IOException e) {
@@ -167,7 +156,7 @@ public class Client {
 				String str = inputList.get(getCount());
 				sb.append(str);
 
-				for (int i = 1; i < max_entry; i++) {
+				for (int i = 1; i < maxEntry; i++) {
 					incrementCount();
 					if (getCount() < inputList.size())
 						sb.append(',').append(inputList.get(count));
@@ -177,11 +166,8 @@ public class Client {
 				incrementCount();
 			}
 
-			// success
 			setWaitCommit(true);
-			//System.out.println("send : " + sb.toString());
 		} catch (IOException e) {
-			//e.printStackTrace();
 			System.out.println("send faled");
 			change_raft_host();
 		} catch (IndexOutOfBoundsException e) {
@@ -199,13 +185,14 @@ public class Client {
 			setWaitCommit(false);
 
 			if (getCount() % 2000 == 0) 
-				System.out.println(
-						socket.getInetAddress() + ":" + socket.getPort() + " > " + getCount() + " input end.");
+				System.out.println(socket.getInetAddress() + ":" + socket.getPort() +
+						" > " + getCount() + " input end.");
 			if (start < 0) 
 				start = System.currentTimeMillis();
 			if (getCount() >= getCommandNum() && !finish) {
 				long end = System.currentTimeMillis();
-				System.out.println(socket.getInetAddress() + ":" + socket.getPort() + " > it takes " + (end - start) + " ms.");
+				System.out.println(socket.getInetAddress() + ":" + socket.getPort() +
+						" > it takes " + (end - start) + " ms.");
 				setWaitCommit(true);
 				finish = true;
 				closeConnection();
@@ -216,7 +203,7 @@ public class Client {
 			openConnection();
 			setWaitCommit(false);
 
-			for (int i = 0; i < max_entry; i++) {
+			for (int i = 0; i < maxEntry; i++) {
 				decrementCount();
 			}
 		}
@@ -229,7 +216,6 @@ public class Client {
 				String str = receive();
 				process(str);
 			} catch (IOException e) {
-				//e.printStackTrace();
 				System.out.println("Receive Exception");
 				if (getWaitCommit()) {
 					try {
@@ -245,24 +231,13 @@ public class Client {
 
 	public static void main(String args[]) {
 		if (args.length < 2) {
-			System.out.println("Please select mode: bulk/one_by_one.");
+			System.out.println("Please select a number of entries per one put: 1~");
 			System.out.println("Please select forwarding port.");
 			System.exit(1);
 		} else {
-			int mode = -1;
-			if (args[0].equalsIgnoreCase("one")) {
-				mode = Client.ONE_BY_ONE_INPUT_MODE;
-				System.out.println("Set mode one by one");
-			} else if (args[0].equalsIgnoreCase("bulk")) {
-				mode = Client.BULK_INPUT_MODE;
-				System.out.println("Set mode bulk");
-			} else {
-				System.out.println("Please select mode: bulk/one");
-				System.exit(1);
-			}
-
+			int maxEntry = Integer.parseInt(args[0]);
 			int forwardingPort = Integer.parseInt(args[1]);
-			new Client(mode, forwardingPort).run();
+			new Client(maxEntry, forwardingPort).run();
 		}
 	}
 }
