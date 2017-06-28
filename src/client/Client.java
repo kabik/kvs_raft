@@ -26,6 +26,8 @@ public class Client {
 
 	private int commandNum = 0;
 	private int count = 0;
+	
+	private int lastCommitIndex = -1;
 
 	long start = -1;
 	boolean finish = false;
@@ -182,8 +184,12 @@ public class Client {
 	public void process(String message) throws IOException {
 		String strArr[] = message.split(" ");
 		if (strArr[0].equals("C")) {
-			setWaitCommit(false);
-
+			int commitIndex = Integer.parseInt(strArr[1]);
+			if (commitIndex > lastCommitIndex) {
+				lastCommitIndex = commitIndex;
+				setWaitCommit(false);	
+			}
+			
 			if (getCount() % 2000 == 0) 
 				System.out.println(socket.getInetAddress() + ":" + socket.getPort() +
 						" > " + getCount() + " input end.");

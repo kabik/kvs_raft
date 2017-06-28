@@ -8,8 +8,9 @@ import raft.server.*;
 public class AppendEntryThread extends AbstractThread {
 	// heartbeat
 	public static final int HEARTBEAT_INTERVAL = 250;
-	public static final int MAX_ENTRY = 10000;	// The number of entries in one RPC
-
+	//public static final int MAX_ENTRY = 10000;	// The number of entries in one RPC
+	public static final int MAX_ENTRY = 1;
+	
 	public AppendEntryThread(Raft raft) {
 		super(raft);
 	}

@@ -78,7 +78,7 @@ public class Raft {
 					if (cn.isWaitingForCommit() && 
 							//waitLogIndex >= 0 &&
 							getLastApplied() >= waitLogIndex) {
-						send(cn, "C");
+						send(cn, "C " + waitLogIndex);
 						cn.releaseWait();
 					}
 				}				
