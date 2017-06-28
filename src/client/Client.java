@@ -188,6 +188,8 @@ public class Client {
 			if (commitIndex > lastCommitIndex) {
 				lastCommitIndex = commitIndex;
 				setWaitCommit(false);	
+			} else {
+				return;
 			}
 			
 			if (getCount() % 2000 == 0) 
